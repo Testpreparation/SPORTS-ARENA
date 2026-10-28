@@ -130,3 +130,112 @@
 #top-menu .top-menu-item b{color:var(--arena-coral)}
 @media(max-width:760px){#screen-home .profile-chip{gap:6px;padding:4px 9px 4px 4px}#screen-home .profile-avatar{width:30px;height:30px;font-size:15px}#screen-home .profile-copy strong{font-size:10px}#screen-home .profile-copy small{font-size:6px;letter-spacing:1px}#screen-home .hamburger-button{width:40px;height:40px}#screen-home .home-mode-button{min-height:66px;padding:10px 12px;border-radius:22px}#screen-home .mode-icon{width:32px;height:32px;font-size:12px}}
 @media(max-height:460px) and (orientation:landscape){#screen-home .home-mode-button{min-height:58px;padding:8px 12px;border-radius:20px}}
+
+
+/* TEMPORARY PORTRAIT MODE — designed for a tall 9:19.6 phone viewport.
+   Landscape rules and gameplay logic remain unchanged. */
+@media (orientation:portrait) and (max-width:760px){
+  .rotate-notice{display:none!important}
+  #app{min-height:0;height:100dvh;height:100svh;width:100%;overflow:hidden}
+  #game-canvas{width:100%;height:100%;touch-action:none}
+  .topbar{height:64px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .brand{gap:8px}
+  .brand-mark{width:31px;height:31px;font-size:15px}
+  .brand-copy strong{font-size:12px;letter-spacing:1px}
+  .brand-copy small{font-size:6px;letter-spacing:1px}
+  .top-actions{gap:8px}
+  .icon-button{width:38px;height:38px}
+  #screen-home .home-copy{
+    top:17%;
+    left:7%;
+    right:7%;
+    max-width:none;
+    width:auto;
+    transform:none;
+  }
+  #screen-home .eyebrow{font-size:9px;letter-spacing:1.7px;gap:8px}
+  #screen-home .eyebrow-line{width:20px}
+  #screen-home .home-copy h1{font-size:clamp(58px,15vw,88px);line-height:.82;letter-spacing:-1.8px;margin:18px 0 12px}
+  #screen-home .hero-description{font-size:11px;line-height:1.7;margin:16px 0 0;max-width:90%}
+  #screen-home .feature-row{display:none}
+  #screen-home .home-right-actions{
+    position:absolute;
+    left:7%;
+    right:7%;
+    top:auto;
+    bottom:calc(12% + env(safe-area-inset-bottom));
+    width:auto;
+    display:flex;
+    flex-direction:column;
+    gap:13px;
+  }
+  #screen-home .home-mode-button{
+    min-height:70px;
+    width:100%;
+    padding:12px 17px;
+    border-radius:22px;
+    gap:13px;
+  }
+  #screen-home .mode-icon{width:38px;height:38px;flex:0 0 38px;font-size:15px}
+  #screen-home .mode-copy b{font-size:15px}
+  #screen-home .mode-copy small{font-size:9px;letter-spacing:1.2px}
+  #screen-home .mode-arrow{margin-left:auto}
+  #screen-home .home-side-label{right:5%;top:50%;font-size:7px;letter-spacing:2px}
+  #screen-home .bottom-caption{left:7%;right:7%;bottom:calc(12px + env(safe-area-inset-bottom));font-size:7px;letter-spacing:1px}
+  #screen-home .bottom-caption span:nth-child(2){display:none}
+  .setup-screen,.settings-screen{padding:76px 12px calc(14px + env(safe-area-inset-bottom));align-items:center}
+  .setup-panel,.settings-panel{width:100%;max-height:100%;padding:20px 16px;border-radius:20px;overflow-y:auto}
+  .screen-heading{gap:10px;margin-bottom:17px}
+  .screen-heading h2{font-size:clamp(29px,8vw,39px);line-height:1}
+  .eyebrow{font-size:9px;letter-spacing:1.4px}
+  .choice-grid{gap:8px}
+  .choice-card{grid-template-columns:28px 1fr;column-gap:7px;padding:11px 8px}
+  .choice-icon{font-size:20px}
+  .choice-card b{font-size:13px}
+  .choice-card small{font-size:7px;letter-spacing:1px}
+  .level-row{gap:6px}
+  .level-button{padding:11px 3px;font-size:10px;letter-spacing:.7px}
+  .setup-grid{gap:15px}
+  .setup-note{gap:8px;padding-top:13px}
+  .setup-note b{font-size:10px}
+  .setup-note small{font-size:9px}
+  .start-match{min-height:50px}
+  .game-hud-top{
+    padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-rows:auto auto;
+    gap:9px;
+    align-items:center;
+    background:linear-gradient(180deg,rgba(3,12,18,.88),rgba(3,12,18,.28),transparent);
+  }
+  .hud-back{grid-column:1;grid-row:1;justify-self:start;padding:8px 10px;font-size:10px}
+  .match-tag{grid-column:2;grid-row:1;justify-self:end;padding:8px 9px;font-size:8px}
+  .score-panel{grid-column:1 / -1;grid-row:2;justify-self:center;min-width:170px;gap:20px;padding:5px 18px;border-radius:12px}
+  .score-player{gap:8px}
+  .score-player b{font-size:24px}
+  .game-hint{top:128px;max-width:90%;white-space:normal;text-align:center;font-size:9px;line-height:1.5}
+  .joycon-controls{
+    bottom:calc(28px + env(safe-area-inset-bottom));
+    left:5%;
+    right:5%;
+    align-items:flex-end;
+    gap:10px;
+  }
+  .joycon-controls .joycon-controls{}
+  .joycon-controls .move-pad{width:clamp(76px,21vw,94px);height:clamp(76px,21vw,94px)}
+  .joycon-controls .hit-buttons{gap:8px}
+  .joycon-controls .joycon-button{width:clamp(50px,14vw,62px);height:clamp(50px,14vw,62px);font-size:18px}
+  .joycon-controls .joycon-button span{font-size:7px}
+  .joycon-label{font-size:7px;letter-spacing:1.3px}
+  .game-bottom{bottom:calc(6px + env(safe-area-inset-bottom));left:12px;right:12px;font-size:7px;letter-spacing:.7px}
+  .game-bottom span:last-child{display:none}
+  .toast{max-width:90%;width:max-content;text-align:center;bottom:calc(150px + env(safe-area-inset-bottom))}
+}
+@media (orientation:portrait) and (max-width:760px) and (max-height:740px){
+  #screen-home .home-copy{top:14%}
+  #screen-home .home-copy h1{font-size:clamp(54px,14vw,74px)}
+  #screen-home .home-right-actions{bottom:calc(10% + env(safe-area-inset-bottom))}
+  #screen-home .home-mode-button{min-height:62px}
+  .game-hint{top:118px}
+}
