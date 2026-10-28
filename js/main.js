@@ -53,9 +53,33 @@
   }
 
   $("#play-open").addEventListener("click", () => showScreen("screen-setup"));
+  $("#main-play-button").addEventListener("click", () => {
+    $("#top-menu").hidden = true;
+    $("#menu-toggle").setAttribute("aria-expanded", "false");
+    showScreen("screen-setup");
+  });
+  $("#friend-match-button").addEventListener("click", () => {
+    toast("フレンド対戦は準備中です。次の開発段階でオンライン対戦を実装します。");
+  });
   $("#practice-open").addEventListener("click", () => startMatch(true));
   $("#setup-back").addEventListener("click", returnHome);
-  $("#settings-open").addEventListener("click", () => showScreen("screen-settings"));
+  $("#menu-toggle").addEventListener("click", () => {
+    const menu = $("#top-menu");
+    const open = menu.hidden;
+    menu.hidden = !open;
+    $("#menu-toggle").setAttribute("aria-expanded", String(open));
+  });
+  $("#settings-open").addEventListener("click", () => {
+    $("#top-menu").hidden = true;
+    $("#menu-toggle").setAttribute("aria-expanded", "false");
+    showScreen("screen-settings");
+  });
+  document.addEventListener("pointerdown", e => {
+    if (!e.target.closest(".top-actions")) {
+      $("#top-menu").hidden = true;
+      $("#menu-toggle").setAttribute("aria-expanded", "false");
+    }
+  });
   $("#settings-close").addEventListener("click", returnHome);
   $("#game-exit").addEventListener("click", returnHome);
   $("#match-start").addEventListener("click", () => startMatch(false));
