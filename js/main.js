@@ -52,7 +52,8 @@
     state.playing = false; state.ballVelocity = null; showScreen("screen-home");
   }
 
-  $("#play-open").addEventListener("click", () => showScreen("screen-setup"));
+  const playOpenButton = $("#play-open");
+  if (playOpenButton) playOpenButton.addEventListener("click", () => showScreen("screen-setup"));
   $("#main-play-button").addEventListener("click", () => {
     $("#top-menu").hidden = true;
     $("#menu-toggle").setAttribute("aria-expanded", "false");
@@ -61,7 +62,8 @@
   $("#friend-match-button").addEventListener("click", () => {
     toast("フレンド対戦は準備中です。次の開発段階でオンライン対戦を実装します。");
   });
-  $("#practice-open").addEventListener("click", () => startMatch(true));
+  const practiceOpenButton = $("#practice-open");
+  if (practiceOpenButton) practiceOpenButton.addEventListener("click", () => startMatch(true));
   $("#setup-back").addEventListener("click", returnHome);
   $("#menu-toggle").addEventListener("click", () => {
     const menu = $("#top-menu");
