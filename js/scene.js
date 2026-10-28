@@ -191,25 +191,30 @@
       }
     }
 
-    // Crowd silhouettes are instanced to retain detail without hundreds of heavy draw calls.
-    const crowdBase=B.MeshBuilder.CreateCapsule("crowd-instance-base",{height:.34,radius:.105,tessellation:6,subdivisions:1},scene);
-    crowdBase.isVisible=false; crowdBase.isPickable=false;
-    crowdMats.forEach((mat,mi)=>{
-      const base=crowdBase.createInstance("crowd-base-"+mi);
-      base.material=mat; base.isVisible=false;
+    // Crowd silhouettes use one instancing source per material for mobile-friendly detail.
+    const crowdBases=crowdMats.map((mat,mi)=>{
+      const base=B.MeshBuilder.CreateCapsule("crowd-instance-base-"+mi,{height:.34,radius:.105,tessellation:6,subdivisions:1},scene);
+      base.material=mat; base.isPickable=false;
+      base.position.set(0,-100-mi,0); base.scaling.set(.001,.001,.001);
+      return base;
     });
     let crowdIndex=0;
+    function addCrowd(name,x,y,z,sx,sy,sz,rotation,matIndex) {
+      const source=crowdBases[matIndex%crowdBases.length];
+      const inst=source.createInstance(name);
+      inst.position.set(x,y,z); inst.scaling.set(sx,sy,sz); inst.rotation.y=rotation;
+      inst.isPickable=false;
+      return inst;
+    }
     for (let side of [-1,1]) {
       for (let row=0;row<6;row++) {
         const z=side*(13.65+row*.92);
         const y=.57+row*.31;
         for (let i=0;i<37;i++) {
           const x=-14.1+i*.785+(row%2)*.18;
-          const inst=crowdBase.createInstance("crowd-person-"+(crowdIndex++));
-          inst.position.set(x,y,z-side*.06);
-          inst.scaling.set(.72+(i%3)*.09,.78+((i+row)%4)*.1,.72);
-          inst.rotation.y=((i*7+row*13)%9)*.11;
-          inst.material=crowdMats[(i*3+row*5+(side>0?2:0))%crowdMats.length];
+          addCrowd("crowd-person-"+(crowdIndex++),x,y,z-side*.06,
+            .72+(i%3)*.09,.78+((i+row)%4)*.1,.72,
+            ((i*7+row*13)%9)*.11,(i*3+row*5+(side>0?2:0))%crowdMats.length);
         }
       }
     }
@@ -218,15 +223,12 @@
         const x=side*(7.55+row*1.15);
         for (let i=0;i<27;i++) {
           const z=-10.7+i*.82+(row%2)*.16;
-          const inst=crowdBase.createInstance("side-crowd-"+side+"-"+row+"-"+i);
-          inst.position.set(x-side*.06,.6+row*.34,z);
-          inst.scaling.set(.72,.82+((i+row)%3)*.12,.72);
-          inst.rotation.y=side*.12;
-          inst.material=crowdMats[(i+row*3+(side>0?1:4))%crowdMats.length];
+          addCrowd("side-crowd-"+side+"-"+row+"-"+i,x-side*.06,.6+row*.34,z,
+            .72,.82+((i+row)%3)*.12,.72,side*.12,
+            (i+row*3+(side>0?1:4))%crowdMats.length);
         }
       }
     }
-    crowdBase.dispose();
 
     // Structural canopy and trusses around the upper seating bowl.
     for (let side of [-1,1]) {
