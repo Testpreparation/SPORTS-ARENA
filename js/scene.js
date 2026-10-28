@@ -90,6 +90,22 @@
     scene.imageProcessingConfiguration.exposure = 1.15;
     scene.imageProcessingConfiguration.contrast = 1.12;
 
+    // Image-based lighting supplies broad, physically plausible reflections and
+    // ambient illumination to PBR surfaces. If the remote environment cannot load,
+    // the existing direct lights remain as a graceful visual fallback.
+    try {
+      const stadiumEnvironment = B.CubeTexture.CreateFromPrefilteredData(
+        "https://assets.babylonjs.com/environments/environmentSpecular.env", scene
+      );
+      scene.environmentTexture = stadiumEnvironment;
+      scene.environmentIntensity = .72;
+      stadiumEnvironment.onError = () => {
+        if (scene.environmentTexture === stadiumEnvironment) scene.environmentTexture = null;
+      };
+    } catch (e) {
+      scene.environmentTexture = null;
+    }
+
     const camera = new B.ArcRotateCamera("arena-camera", -Math.PI / 2 + .2, 1.08, 21.5, new B.Vector3(0, 1.4, 0), scene);
     camera.lowerRadiusLimit = 16; camera.upperRadiusLimit = 25;
     camera.lowerBetaLimit = .82; camera.upperBetaLimit = 1.28;
@@ -153,6 +169,14 @@
     courtInner.albedoTexture = innerCourtTexture;
     courtInner.albedoColor = B.Color3.White();
     courtInner.roughness = .79;
+
+    // Real acrylic courts are mostly matte, but a restrained clear coat gives
+    // the surface a subtle light response instead of a flat painted appearance.
+    [courtMat, courtInner].forEach(m => {
+      m.clearCoat.isEnabled = true;
+      m.clearCoat.intensity = .12;
+      m.clearCoat.roughness = .62;
+    });
 
     const floor = B.MeshBuilder.CreateGround("stadium-floor", {width:48,height:36}, scene); floor.position.y = -.11; floor.material = darkMat; floor.isPickable = false;
     const court = B.MeshBuilder.CreateGround("court", {width:10.97,height:23.77}, scene); court.position.y = 0; court.material = courtMat; court.isPickable = false;
@@ -236,6 +260,48 @@
         tier.position.set(x,.35+row*.34,0); tier.material=concreteMat; tier.isPickable=false;
         const seats=B.MeshBuilder.CreateBox("side-seat-tier-"+side+"-"+row,{width:.43,height:.17,depth:22.3+row*.8},scene);
         seats.position.set(x-side*.08,.52+row*.34,0); seats.material=seatMats[(row+1)%seatMats.length]; seats.isPickable=false;
+      }
+    }
+
+
+    // Individual molded seats break up the long, block-like stand rows.
+    // Instancing keeps the extra stadium detail substantially lighter than
+    // creating a separate high-detail mesh for every seat.
+    const seatShellMat = material(scene, "individual-seat-shell", "#203d47", .56, .08);
+    const seatPadMat = material(scene, "individual-seat-pad", "#31535c", .72);
+    const seatBackBase = B.MeshBuilder.CreateBox("seat-back-instance-source", {width:1,height:1,depth:1}, scene);
+    seatBackBase.material = seatShellMat; seatBackBase.position.set(0,-120,0); seatBackBase.isPickable = false;
+    const seatPadBase = B.MeshBuilder.CreateBox("seat-pad-instance-source", {width:1,height:1,depth:1}, scene);
+    seatPadBase.material = seatPadMat; seatPadBase.position.set(0,-120,0); seatPadBase.isPickable = false;
+    function addIndividualSeat(name, x, y, z, facing, width=.34) {
+      const back = seatBackBase.createInstance(name + "-back");
+      back.position.set(x,y+.27,z); back.rotation.x = facing; back.scaling.set(width,.36,.075); back.isPickable=false;
+      const pad = seatPadBase.createInstance(name + "-pad");
+      pad.position.set(x,y+.08,z-.08*Math.cos(facing)); pad.rotation.x=facing; pad.scaling.set(width,.09,.31); pad.isPickable=false;
+    }
+    // Rear and front grandstands: individual seat backs and cushions per row.
+    for (let side of [-1,1]) {
+      for (let row=0;row<6;row++) {
+        const z=side*(13.45+row*.92);
+        const y=.25+row*.31;
+        const count=52+row;
+        const start=-(count-1)*.28/2;
+        for (let i=0;i<count;i++) {
+          addIndividualSeat("stadium-seat-"+side+"-"+row+"-"+i,
+            start+i*.28,y+.17,z-side*.08,side*.035,.235);
+        }
+      }
+    }
+    // Individual seats along the side stands, oriented toward the court.
+    for (let side of [-1,1]) {
+      for (let row=0;row<5;row++) {
+        const x=side*(7.2+row*1.15);
+        const count=38+row*2;
+        const start=-(count-1)*.28/2;
+        for (let i=0;i<count;i++) {
+          addIndividualSeat("side-stadium-seat-"+side+"-"+row+"-"+i,
+            x-side*.08,.35+row*.34,start+i*.28,side*.035,.235);
+        }
       }
     }
 
@@ -381,6 +447,8 @@
     const shadows = new B.ShadowGenerator(1024,key);
     shadows.useBlurExponentialShadowMap=true; shadows.blurKernel=16;
     shadows.bias = .0005; shadows.normalBias = .025;
+    shadows.usePercentageCloserFiltering = true;
+    shadows.filteringQuality = B.ShadowGenerator.QUALITY_MEDIUM;
     // Register the actual child meshes (not only their TransformNode roots) so
     // the players cast usable shadows on supported mobile and desktop devices.
     scene.meshes.forEach(mesh => {
