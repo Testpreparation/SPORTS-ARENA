@@ -17,13 +17,15 @@
     <canvas id="game-canvas" aria-label="3D tennis arena"></canvas>
     <div class="scene-vignette" aria-hidden="true"></div>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Real Tennis Arena home">
-        <span class="brand-mark">R<span>·</span>T</span>
-        <span class="brand-copy"><strong>REAL TENNIS</strong><small>ARENA / WEB EDITION</small></span>
+      <a class="profile-chip" href="#" aria-label="Player profile" onclick="return false">
+        <span class="profile-avatar" aria-hidden="true">P</span>
+        <span class="profile-copy"><strong>GUEST PLAYER</strong><small>PLAYER PROFILE</small></span>
       </a>
       <div class="top-actions">
-        <span class="status-pill"><i></i> 3D ARENA</span>
-        <button class="icon-button" id="settings-open" aria-label="Settings">⚙</button>
+        <button class="icon-button hamburger-button" id="menu-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="top-menu" id="top-menu" hidden>
+          <button id="settings-open" class="top-menu-item"><span>⚙</span> 設定 <b>›</b></button>
+        </div>
       </div>
     </header>
 
@@ -33,13 +35,17 @@
         <h1>OWN THE<br><em>COURT.</em></h1>
         <p class="hero-description">自分のスタイルで、コートを支配しよう。</p>
         <div class="home-buttons">
-          <button class="button button-primary" id="play-open"><span>PLAY NOW</span><b>↗</b></button>
+          <button class="button button-primary" id="play-open"><span>プレイ</span><b>↗</b></button>
           <button class="button button-quiet" id="practice-open"><span>FREE PRACTICE</span><b>＋</b></button>
         </div>
         <div class="feature-row">
           <div><span class="feature-number">01</span><span><b>3D ARENA</b><small>IMMERSIVE COURT</small></span></div>
           <div><span class="feature-number">02</span><span><b>YOUR STYLE</b><small>STYLIZED ATHLETES</small></span></div>
         </div>
+      </div>
+      <div class="home-right-actions" aria-label="Game modes">
+        <button class="home-mode-button home-mode-primary" id="main-play-button"><span class="mode-icon">▶</span><span class="mode-copy"><b>プレイ</b><small>PLAY MATCH</small></span><span class="mode-arrow">↗</span></button>
+        <button class="home-mode-button" id="friend-match-button"><span class="mode-icon">♧</span><span class="mode-copy"><b>フレンド対戦</b><small>PLAY WITH FRIENDS</small></span><span class="mode-arrow">↗</span></button>
       </div>
       <div class="home-side-label">SERVE · RALLY · WIN</div>
       <div class="bottom-caption"><span>01 / HOME</span><span>LANDSCAPE EXPERIENCE</span><span>SPORTS ARENA PROJECT</span></div>
