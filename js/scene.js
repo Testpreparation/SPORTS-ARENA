@@ -112,9 +112,57 @@
     const netMeshMat = new B.StandardMaterial("net-mesh-material", scene);
     netMeshMat.diffuseColor = new B.Color3(.7,.8,.77); netMeshMat.alpha = .52; netMeshMat.wireframe = true;
 
+    // Procedural high-frequency court coatings: subtle pigment variation and fine
+    // surface grain add material depth without external downloads or large assets.
+    function createCourtTexture(name, base, light, dark, seed) {
+      const tex = new B.DynamicTexture(name, { width: 1024, height: 2048 }, scene, true);
+      const ctx = tex.getContext();
+      ctx.fillStyle = base; ctx.fillRect(0, 0, 1024, 2048);
+      const grad = ctx.createLinearGradient(0, 0, 1024, 2048);
+      grad.addColorStop(0, light); grad.addColorStop(.5, base); grad.addColorStop(1, dark);
+      ctx.globalAlpha = .24; ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 2048);
+      let state = seed >>> 0;
+      const rand = () => { state = (state * 1664525 + 1013904223) >>> 0; return state / 4294967296; };
+      for (let i = 0; i < 17000; i++) {
+        const x = rand() * 1024, y = rand() * 2048;
+        const a = .025 + rand() * .075;
+        ctx.globalAlpha = a;
+        ctx.fillStyle = rand() > .52 ? light : dark;
+        const w = 1 + rand() * 5, h = 1 + rand() * 10;
+        ctx.fillRect(x, y, w, h);
+      }
+      // Fine, irregular roller marks suggest a real acrylic court coating.
+      for (let i = 0; i < 360; i++) {
+        ctx.globalAlpha = .025 + rand() * .035;
+        ctx.strokeStyle = rand() > .5 ? light : dark;
+        ctx.lineWidth = .5 + rand() * 1.4;
+        const x = rand() * 1024, y = rand() * 2048;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (rand() - .5) * 5, y + 8 + rand() * 42); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      tex.update(false);
+      tex.wrapU = B.Texture.CLAMP_ADDRESSMODE;
+      tex.wrapV = B.Texture.CLAMP_ADDRESSMODE;
+      return tex;
+    }
+    const outerCourtTexture = createCourtTexture("court-acrylic-grain", "#176b72", "#398c89", "#0b424d", 4817);
+    const innerCourtTexture = createCourtTexture("inner-court-acrylic-grain", "#238b8a", "#51a69b", "#145c68", 9203);
+    courtMat.albedoTexture = outerCourtTexture;
+    courtMat.albedoColor = B.Color3.White();
+    courtMat.roughness = .82;
+    courtInner.albedoTexture = innerCourtTexture;
+    courtInner.albedoColor = B.Color3.White();
+    courtInner.roughness = .79;
+
     const floor = B.MeshBuilder.CreateGround("stadium-floor", {width:48,height:36}, scene); floor.position.y = -.11; floor.material = darkMat; floor.isPickable = false;
     const court = B.MeshBuilder.CreateGround("court", {width:10.97,height:23.77}, scene); court.position.y = 0; court.material = courtMat; court.isPickable = false;
     const playing = B.MeshBuilder.CreateGround("inner-court", {width:8.23,height:23.77}, scene); playing.position.y = .008; playing.material = courtInner; playing.isPickable = false;
+
+    // Slightly varied apron finish and a recessed boundary strip make the court
+    // read as a professionally installed surface rather than a flat primitive.
+    const apronEdgeMat = material(scene, "court-apron-edge", "#101f27", .86);
+    const apronEdge = B.MeshBuilder.CreateBox("court-apron-recessed-edge", {width:18.1,height:.08,depth:29.5}, scene);
+    apronEdge.position.y = -.13; apronEdge.material = apronEdgeMat; apronEdge.isPickable = false;
 
     function line(name, x1,z1,x2,z2, thickness=.055) {
       const length = Math.hypot(x2-x1,z2-z1);
@@ -330,8 +378,22 @@
     const seam = B.MeshBuilder.CreateTorus("ball-seam",{diameter:.225,thickness:.009,tessellation:32},scene); seam.parent=ball; seam.rotation.x=.8; seam.material=seamMat; seam.isPickable=false;
 
     const glow = new B.GlowLayer("arena-glow",scene,{blurKernelSize:32}); glow.intensity=.25;
-    const shadows = new B.ShadowGenerator(1024,key); shadows.useBlurExponentialShadowMap=true; shadows.blurKernel=16;
-    shadows.addShadowCaster(player); shadows.addShadowCaster(cpu);
+    const shadows = new B.ShadowGenerator(1024,key);
+    shadows.useBlurExponentialShadowMap=true; shadows.blurKernel=16;
+    shadows.bias = .0005; shadows.normalBias = .025;
+    // Register the actual child meshes (not only their TransformNode roots) so
+    // the players cast usable shadows on supported mobile and desktop devices.
+    scene.meshes.forEach(mesh => {
+      if (mesh.name.startsWith("player-") || mesh.name.startsWith("cpu-")) {
+        shadows.addShadowCaster(mesh);
+      }
+    });
+    // Stadium surfaces receive shadows; keep expensive crowd silhouettes unshadowed.
+    scene.meshes.forEach(mesh => {
+      if (mesh.name === "court" || mesh.name === "inner-court" || mesh.name === "court-apron") {
+        mesh.receiveShadows = true;
+      }
+    });
     // Procedural athlete meshes are assembled from children; the generator is kept modest for mobile.
     scene.metadata = { player, cpu, ball, camera, court, shadows };
     return scene;
