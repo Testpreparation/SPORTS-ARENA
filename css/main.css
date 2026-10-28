@@ -96,3 +96,37 @@
 .joycon-controls .joycon-side.shot-controls-side .joycon-button{touch-action:manipulation}
 .joycon-controls .shot-main-button{background:linear-gradient(145deg,#d7ff55,#a7d43c);color:#101b1e;border-color:rgba(240,255,190,.8)}
 .joycon-controls .shot-lob-button{background:linear-gradient(145deg,#263e4b,#0a1a24);color:#f5f8f7;border-color:rgba(236,247,244,.42)}
+
+
+/* Main menu visual language matched to BADMINTON-ARENA.
+   Keep the existing placement: profile top-left, settings top-right,
+   and Play / Friend Match stacked on the right. */
+:root{--arena-blue:#4aa8ff;--arena-blue-deep:#163b70;--arena-coral:#ff5a3c;--arena-ice:#eaf4ff}
+#screen-home .home-copy h1{background:linear-gradient(180deg,#fff 8%,#d9efff 48%,#69b9ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:1px rgba(20,60,120,.48);filter:drop-shadow(0 5px 0 rgba(20,60,120,.3))}
+#screen-home .home-copy h1 em{color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(180deg,#fff 0%,#bfe6ff 48%,#4aa8ff 100%);-webkit-background-clip:text;background-clip:text}
+#screen-home .eyebrow-line{background:var(--arena-coral)}
+#screen-home .feature-number{color:#9fd6ff}
+#screen-home .feature-row b{color:#fff}
+#screen-home .feature-row small{color:#d5e8f8}
+#screen-home .profile-chip{gap:10px;padding:5px 16px 5px 5px;border-radius:40px;color:#16324f;background:rgba(255,255,255,.94);border:2px solid rgba(255,255,255,.82);box-shadow:0 5px 0 rgba(20,60,120,.24),0 10px 26px rgba(0,0,0,.18);backdrop-filter:blur(10px)}
+#screen-home .profile-avatar{background:linear-gradient(145deg,#fff,#c8e7ff);color:#16324f;border:2px solid #fff;box-shadow:0 0 0 2px rgba(74,168,255,.32)}
+#screen-home .profile-copy strong{color:#16324f}
+#screen-home .profile-copy small{color:#52708e}
+#screen-home .hamburger-button{background:rgba(255,255,255,.94);border:2px solid rgba(255,255,255,.82);border-radius:50%;box-shadow:0 5px 0 rgba(20,60,120,.24),0 10px 26px rgba(0,0,0,.18)}
+#screen-home .hamburger-button span{background:#16324f}
+#screen-home .home-mode-button{min-height:82px;padding:14px 18px;border:0;border-radius:28px;color:#16324f;background:linear-gradient(155deg,#fff 0%,#f0f7ff 100%);box-shadow:0 8px 0 rgba(20,60,120,.3),0 15px 32px rgba(0,0,0,.22);backdrop-filter:none}
+#screen-home .home-mode-button:hover{transform:translateY(-4px) scale(1.02);border-color:transparent;color:#16324f;background:#fff;box-shadow:0 12px 0 rgba(20,60,120,.3),0 19px 36px rgba(0,0,0,.25)}
+#screen-home .home-mode-primary{background:linear-gradient(155deg,#fff 0%,#eaf4ff 100%)}
+#screen-home .mode-icon{width:42px;height:42px;border:0;background:linear-gradient(145deg,#d9efff,#8dccff);color:#16324f;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}
+#screen-home .home-mode-primary .mode-icon{background:linear-gradient(145deg,#c6f36b,#a7d43c)}
+#screen-home .home-mode-button:not(.home-mode-primary) .mode-icon{background:linear-gradient(145deg,#d9efff,#8dccff);color:#16324f}
+#screen-home .mode-copy b{color:#16324f;font-weight:900}
+#screen-home .mode-copy small{color:#52708e;opacity:1}
+#screen-home .mode-arrow{color:#4a78a5}
+#screen-home .home-mode-button .mode-copy .mode-status{color:#fff;background:var(--arena-coral);border-radius:20px;padding:3px 9px;opacity:1;font-weight:800;box-shadow:0 3px 0 rgba(180,54,35,.18)}
+#top-menu{background:linear-gradient(155deg,#fff,#eaf4ff);color:#16324f;border:2px solid #d5e8f8;border-radius:20px;box-shadow:0 10px 0 rgba(20,60,120,.2),0 20px 42px rgba(0,0,0,.28);backdrop-filter:blur(12px)}
+#top-menu .top-menu-item{color:#16324f;border-radius:14px}
+#top-menu .top-menu-item:hover{background:#e2f1ff}
+#top-menu .top-menu-item b{color:var(--arena-coral)}
+@media(max-width:760px){#screen-home .profile-chip{gap:6px;padding:4px 9px 4px 4px}#screen-home .profile-avatar{width:30px;height:30px;font-size:15px}#screen-home .profile-copy strong{font-size:10px}#screen-home .profile-copy small{font-size:6px;letter-spacing:1px}#screen-home .hamburger-button{width:40px;height:40px}#screen-home .home-mode-button{min-height:66px;padding:10px 12px;border-radius:22px}#screen-home .mode-icon{width:32px;height:32px;font-size:12px}}
+@media(max-height:460px) and (orientation:landscape){#screen-home .home-mode-button{min-height:58px;padding:8px 12px;border-radius:20px}}
