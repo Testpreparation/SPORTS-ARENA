@@ -89,3 +89,10 @@
 .joycon-controls .joycon-b{background:linear-gradient(145deg,#263e4b,#0a1a24);color:#f5f8f7;border-color:rgba(236,247,244,.42)}
 @media(max-width:760px){.joycon-controls{display:flex}.joycon-controls .hit-buttons{display:flex}.joycon-controls .joycon-button{min-width:0}}
 @media(max-height:460px) and (orientation:landscape){.joycon-controls{bottom:24px}.joycon-controls .move-pad{width:78px;height:78px}.joycon-controls .joycon-button{width:52px;height:52px}.joycon-controls .joycon-button span{font-size:7px}}
+
+/* Virtual joystick (not Joy-Con) naming and appearance */
+.joycon-controls .joycon-side.joystick-side .move-pad{touch-action:none;cursor:grab}
+.joycon-controls .joycon-side.joystick-side .move-knob{pointer-events:none}
+.joycon-controls .joycon-side.shot-controls-side .joycon-button{touch-action:manipulation}
+.joycon-controls .shot-main-button{background:linear-gradient(145deg,#d7ff55,#a7d43c);color:#101b1e;border-color:rgba(240,255,190,.8)}
+.joycon-controls .shot-lob-button{background:linear-gradient(145deg,#263e4b,#0a1a24);color:#f5f8f7;border-color:rgba(236,247,244,.42)}
