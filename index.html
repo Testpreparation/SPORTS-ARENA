@@ -92,9 +92,9 @@
         <div class="match-tag"><i></i><span id="match-mode-label">SINGLES</span></div>
       </div>
       <div class="game-hint" id="game-hint">移動：WASD / 矢印キー　・　打球：SPACE</div>
-      <div class="touch-controls" id="touch-controls">
-        <div class="move-pad" id="move-pad"><div class="move-knob" id="move-knob"></div></div>
-        <div class="hit-buttons"><button id="hit-button" class="hit-button">SHOT<span>打つ</span></button><button id="lob-button" class="small-hit-button">LOB</button></div>
+      <div class="touch-controls joycon-controls" id="touch-controls" aria-label="スマホ用ジョイコン操作">
+        <div class="joycon-side joycon-left"><span class="joycon-label">MOVE</span><div class="move-pad" id="move-pad" aria-label="移動スティック"><div class="move-knob" id="move-knob"></div></div></div>
+        <div class="joycon-side joycon-right"><span class="joycon-label">SHOT</span><div class="hit-buttons"><button id="lob-button" class="small-hit-button joycon-button joycon-b" aria-label="ロブ">B<span>LOB</span></button><button id="hit-button" class="hit-button joycon-button joycon-a" aria-label="打つ">A<span>打つ</span></button></div></div>
       </div>
       <div class="game-bottom"><span>POINT <b id="point-state">READY</b></span><span>REAL TENNIS ARENA / TRAINING BUILD</span></div>
     </section>
