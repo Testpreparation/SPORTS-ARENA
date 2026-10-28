@@ -39,7 +39,7 @@
   function startMatch(practice) {
     state.playing = true; state.scoreYou = 0; state.scoreCpu = 0; updateScore();
     $("#match-mode-label").textContent = practice ? "PRACTICE" : state.mode.toUpperCase();
-    $("#game-hint").textContent = "移動：WASD / 矢印キー　・　打球：SPACE";
+    $("#game-hint").textContent = window.matchMedia("(pointer: coarse)").matches ? "左スティック：移動　・　A：打つ　・　B：ロブ" : "移動：WASD / 矢印キー　・　打球：SPACE　・　ロブ：L";
     showScreen("screen-gameplay");
     if (sceneData) {
       sceneData.player.position.set(0,0,7.2);
