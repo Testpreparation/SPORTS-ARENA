@@ -9,7 +9,7 @@ canvas{display:block}
 #top{top:env(safe-area-inset-top,0px)}#bot{bottom:env(safe-area-inset-bottom,0px)}
 button{border:0;border-radius:20px;padding:9px 14px;font-size:14px;color:var(--fg);background:var(--chip);backdrop-filter:blur(8px)}
 button.on{background:var(--on);color:#fff}
-#msg{position:fixed;z-index:20;top:38%;left:0;right:0;text-align:center;font-size:34px;font-weight:800;color:#fff;text-shadow:0 2px 8px #000;pointer-events:none;white-space:pre-line}
+#msg{position:fixed;z-index:20;top:38%;left:0;right:0;text-align:center;font-size:clamp(26px,5vw,48px);font-weight:900;font-style:italic;letter-spacing:.06em;color:#fff;-webkit-text-stroke:1px rgba(0,0,0,.4);text-shadow:0 3px 10px #000;pointer-events:none;white-space:pre-line}#msg:not(:empty){animation:msgPop .35s ease-out}@keyframes msgPop{from{transform:scale(1.35);opacity:0}to{transform:scale(1);opacity:1}}
 
 /* 3Dシーン専用：操作UIは表示しない */
 .bar{display:none!important}
@@ -319,7 +319,7 @@ const tennisGame=(()=> {
   if(ball.position.y<=.11){ball.position.y=.11;if(Math.abs(ballV.x)>0)ballV.x*=.88;ballV.y=Math.abs(ballV.y)*.68;ballV.x*=.92;ballV.z*=.92;bounceCount++;
    const side=ball.position.x<0?1:0;
    if(Math.abs(ball.position.x)>11.885||Math.abs(ball.position.z)>5.485){point(lastHitter===0?1:0,'アウト');return}
-   if(bounceCount>=2){point(lastHitter===0?1:0,'2バウンド');return}
+   if(bounceCount>=2){point(lastHitter===0?1:0,'ツーバウンド');return}
    if(side===1&&lastHitter===0){setTimeout(()=>{if(!live||pointLock)return;const near=Math.hypot(ball.position.x-opponent.position.x,ball.position.z-opponent.position.z);if(near<3.8){launch('hit',1)}else{point(0,'CPUが届かない');}},180)}
   }
   if(ball.position.y<-.2){point(lastHitter===0?1:0,'ミス');return}
