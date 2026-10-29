@@ -1,6 +1,6 @@
 /* Tennis match controller. The 3D scene owns simulation; this file owns controls and HUD. */
 (()=>{'use strict';
-let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0';
+let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0',lastStatus='',serveChargeStart=0,serveCharging=false;
 const $=id=>document.getElementById(id);
 function post(type,data={}){try{frame?.contentWindow?.postMessage({type:'tennis-engine',action:type,...data},location.origin)}catch(_){}}
 function button(label,action,cls=''){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.action=action;b.className=cls;return b}
@@ -29,9 +29,12 @@ function makeUI(){
  joy.addEventListener('pointermove',joyMove);
  const joyEnd=ev=>{if(joyId!==ev.pointerId)return;joyId=null;origin=null;aim={x:0,y:0};knob.style.transform='';post('move',{keys:[]})};
  joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+ function currentServePower(){const cycle=.8,elapsed=Math.max(0,(performance.now()-serveChargeStart)/1000),phase=(elapsed%cycle)/cycle,level=phase<.4?phase/.4:phase<.55?1:(1-phase)/.45;return .25+.75*Math.max(0,Math.min(1,level))}
+ function updateServeMeter(){if(!serveCharging||!meterFill)return;const power=currentServePower();meterFill.style.height=(8+(power-.25)/.75*92)+'%';requestAnimationFrame(updateServeMeter)}
+ function beginServeCharge(button,ev){if(!active||button.hidden)return;ev.preventDefault();heldButton=button;serveCharging=true;serveChargeStart=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';if(meter){meter.hidden=false;if(meterFill)meterFill.style.height='8%'}updateServeMeter()}
  function bindHit(button,kind){
-  button.addEventListener('pointerdown',ev=>{if(button.hidden||!active)return;ev.preventDefault();heldButton=button;hitStarted=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';clearTimeout(holdTimer);holdTimer=setTimeout(()=>{if(heldButton===button&&kind==='hit')button.textContent='強打！'},420)});
-  const finish=ev=>{if(heldButton!==button)return;ev.preventDefault();const elapsed=performance.now()-hitStarted;heldButton=null;hitStarted=0;clearTimeout(holdTimer);button.style.transform='';button.textContent=lastStatus.includes('サーブ')?'サーブ':(button===bs?'スイング':button===bp?'打撃':'ドロップ');post('hit',{kind:kind==='hit'&&elapsed>420?'power':kind,aim});};
+  button.addEventListener('pointerdown',ev=>{if(button.hidden||!active)return;if(button===bs&&lastStatus==='サーブしてください'){beginServeCharge(button,ev);return}ev.preventDefault();heldButton=button;hitStarted=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';clearTimeout(holdTimer);holdTimer=setTimeout(()=>{if(heldButton===button&&kind==='hit')button.textContent='強打！'},420)});
+  const finish=ev=>{if(heldButton!==button)return;ev.preventDefault();if(serveCharging){const power=currentServePower();serveCharging=false;heldButton=null;button.style.transform='';button.textContent='サーブ';if(meter)meter.hidden=true;post('hit',{kind:'hit',aim,power});return}const elapsed=performance.now()-hitStarted;heldButton=null;hitStarted=0;clearTimeout(holdTimer);button.style.transform='';button.textContent=lastStatus.includes('サーブ')?'サーブ':(button===bs?'スイング':button===bp?'打撃':'ドロップ');post('hit',{kind:kind==='hit'&&elapsed>420?'power':kind,aim});};
   button.addEventListener('pointerup',finish);button.addEventListener('pointercancel',finish);
  }
  bindHit(bs,'hit');bindHit(bp,'power');bindHit(bd,'drop');
@@ -48,6 +51,8 @@ function setStatus(t){
  const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください';
  if(bs)bs.textContent=serving?'サーブ':'スイング';
  if(bp)bp.hidden=serving;if(bd)bd.hidden=serving;
+ const joy=$('joy');if(joy)joy.style.visibility=serving?'hidden':'visible';
+ if(!serving){serveCharging=false;const meter=$('serveMeter');if(meter)meter.hidden=true;}
 }
 function updateScore(d){
  const score=$('score');if(!score)return;
