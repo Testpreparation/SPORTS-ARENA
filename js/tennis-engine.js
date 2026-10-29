@@ -45,7 +45,7 @@ function stop(){active=false;keys.clear();post('stop');$('hud')&&($('hud').hidde
 function setStatus(t){
  lastStatus=String(t||'');
  const e=$('msg');if(e)e.textContent=lastStatus;
- const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus.includes('サーブ');
+ const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください';
  if(bs)bs.textContent=serving?'サーブ':'スイング';
  if(bp)bp.hidden=serving;if(bd)bd.hidden=serving;
 }
