@@ -64,7 +64,10 @@ function showPointScore(d){
 function stop(){active=false;keys.clear();clearTimeout(statusTimer);statusTimer=0;lastStatus='';clearPointScore();post('stop');$('hud')&&($('hud').hidden=true);$('touch')&&($('touch').hidden=true);$('mb')&&($('mb').hidden=true);$('pauseMenu')&&($('pauseMenu').hidden=true);frame=null;stage=null}
 function setStatus(t,options={}){
  clearTimeout(statusTimer);statusTimer=0;
- lastStatus=String(t||'');
+ const incoming=String(t||'');
+ // 3D試合では、打球ごとの演出メッセージを表示しない（古いキャッシュや別バージョンから届いた通知も遮断）。
+ const extraShotMessage=/(ナイスショット|グッドショット|サーブの構え|サーブ！|強打！|ドロップ！|スライス！|ボールに近づいて|タイミングよく打って|ラリー中)/.test(incoming);
+ lastStatus=extraShotMessage?'':incoming;
  const e=$('msg');if(e){e.textContent=lastStatus;e.hidden=!lastStatus;}
  if(lastStatus&&Number.isFinite(options.duration)&&options.duration>0){const expected=lastStatus;statusTimer=setTimeout(()=>{if(lastStatus===expected){lastStatus='';const msg=$('msg');if(msg)msg.textContent='';}},options.duration);}
  const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください'||lastStatus.startsWith('サーブ：');
