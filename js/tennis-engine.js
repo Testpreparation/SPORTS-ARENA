@@ -20,7 +20,7 @@ function makeUI(){
  const hitBox=style(document.createElement('div'),{display:'grid',gridTemplateColumns:'repeat(2,minmax(76px,auto))',gap:'7px'});
  [['サーブ/打つ','hit'],['強打','power'],['ドロップ','drop'],['スライス','slice']].forEach(([label,act])=>{const b=button(label,act);style(b,{padding:'13px 12px',border:'1px solid #ffffff66',borderRadius:'13px',background:act==='hit'?'#1676d2dd':'#081625d9',color:'#fff',fontWeight:'800',fontSize:'13px',touchAction:'none'});hitBox.appendChild(b)});
  controls.appendChild(hitBox);ui.appendChild(controls);stage.appendChild(ui);
- ui.addEventListener('pointerdown',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const a=b.dataset.action;if(['left','right','up','down'].includes(a)){e.preventDefault();keys.add(a);post('move',{keys:[...keys]});return}if(['hit','power','drop','slice'].includes(a)){e.preventDefault();post('hit',{kind:a});}});
+ ui.addEventListener('pointerdown',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const a=b.dataset.action;if(a==='quit'){stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'));return}if(['left','right','up','down'].includes(a)){e.preventDefault();keys.add(a);post('move',{keys:[...keys]});return}if(['hit','power','drop','slice'].includes(a)){e.preventDefault();post('hit',{kind:a});}});
  ['pointerup','pointercancel','pointerleave'].forEach(type=>ui.addEventListener(type,e=>{if(e.target.closest('button[data-action]')){keys.clear();post('move',{keys:[]})}}));
 }
 function start(iframe,container){frame=iframe;stage=container;active=true;makeUI();frame.addEventListener('load',()=>post('start'),{once:true});if(frame.contentDocument?.readyState==='complete')post('start');}
