@@ -88,4 +88,10 @@
 <div id="cacheNotice" role="dialog" aria-live="polite" aria-labelledby="cacheNoticeTitle" hidden><h2 id="cacheNoticeTitle">📦 保存容量のお知らせ</h2><p id="cacheNoticeText">サイトの保存容量が10MB以上になりました。保存データは削除せず、最新版を読み込み直せます。</p><button id="cacheRefreshBtn" type="button">最新版を読み込む</button><button id="cacheLaterBtn" type="button" class="cacheLater">あとで</button></div>
 
 
+
+<!-- 独立3D描画ステージ。試合エンジンとは分離し、明示的に表示した時だけ使用する。 -->
+<div id="game3dStage" hidden aria-label="3Dゲーム表示"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="./js/renderer3d.js" defer></script>
+
 </body></html>
