@@ -1,6 +1,6 @@
 /* Tennis match controller. The 3D scene owns simulation; this file owns controls and HUD. */
 (()=>{'use strict';
-let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0',lastStatus='',serveChargeStart=0,serveCharging=false,statusTimer=0;
+let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0',lastStatus='',serveChargeStart=0,serveCharging=false,statusTimer=0,pointScoreTimer=0,pointScoreFadeTimer=0;
 const $=id=>document.getElementById(id);
 function post(type,data={}){try{frame?.contentWindow?.postMessage({type:'tennis-engine',action:type,...data},location.origin)}catch(_){}}
 function button(label,action,cls=''){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.action=action;b.className=cls;return b}
@@ -44,7 +44,22 @@ function makeUI(){
 }
 
 function start(iframe,container){frame=iframe;stage=container;active=true;makeUI();frame.addEventListener('load',()=>post('start'),{once:true});if(frame.contentDocument?.readyState==='complete')post('start');}
-function stop(){active=false;keys.clear();clearTimeout(statusTimer);statusTimer=0;lastStatus='';post('stop');$('hud')&&($('hud').hidden=true);$('touch')&&($('touch').hidden=true);$('mb')&&($('mb').hidden=true);$('pauseMenu')&&($('pauseMenu').hidden=true);frame=null;stage=null}
+function clearPointScore(){clearTimeout(pointScoreTimer);clearTimeout(pointScoreFadeTimer);pointScoreTimer=pointScoreFadeTimer=0;const el=$('pointScore');if(el){el.classList.remove('fadeOut');el.hidden=true;el.replaceChildren();}}
+function showPointScore(d){
+ const el=$('pointScore');if(!el)return;
+ clearPointScore();
+ const sets=d.sets||[0,0],games=d.games||[0,0],pts=d.points||[0,0];
+ const labels=['0','15','30','40'];
+ const p=(a,b)=>a>=3&&b>=3?(a===b?'40':a>b?'Ad':'40'):labels[Math.min(a,3)];
+ const clean=v=>String(v??'').replace(/[<>&"]/g,'');
+ const home=clean(localStorage.getItem('rs-nick')||'あなた'),away='CPU';
+ const a=p(pts[0],pts[1]),b=p(pts[1],pts[0]);
+ el.innerHTML='<div class="ps-title">'+(d.matchOver?'MATCH POINT':'LIVE SCORE')+'</div><div class="ps-main"><span>'+a+'</span><span>－</span><span>'+b+'</span></div><div class="ps-sub"><span class="ps-names">'+home+'</span> 対 <span class="ps-names">'+away+'</span>　セット '+sets[0]+'-'+sets[1]+' ／ ゲーム '+games[0]+'-'+games[1]+'</div>';
+ el.hidden=false;
+ pointScoreFadeTimer=setTimeout(()=>{if(!el.hidden)el.classList.add('fadeOut')},1700);
+ pointScoreTimer=setTimeout(()=>{el.hidden=true;el.classList.remove('fadeOut');},2400);
+}
+function stop(){active=false;keys.clear();clearTimeout(statusTimer);statusTimer=0;lastStatus='';clearPointScore();post('stop');$('hud')&&($('hud').hidden=true);$('touch')&&($('touch').hidden=true);$('mb')&&($('mb').hidden=true);$('pauseMenu')&&($('pauseMenu').hidden=true);frame=null;stage=null}
 function setStatus(t,options={}){
  clearTimeout(statusTimer);statusTimer=0;
  lastStatus=String(t||'');
@@ -63,7 +78,7 @@ function updateScore(d){
  const safe=n=>String(n).replace(/[<>&"]/g,'');
  const player=(n,p)=>'<div class="sr playerPoint"><b>'+safe(n)+'</b><u>'+p+'</u></div>';
  score.innerHTML='<div class="sr summary compactSummary"><b>SET '+sets[0]+' - '+sets[1]+'</b><i>GAME '+games[0]+' - '+games[1]+'</i></div>'+player(localStorage.getItem('rs-nick')||'あなた',point(pts[0],pts[1],0))+player('CPU',point(pts[0],pts[1],1));
- scoreText=d.score||scoreText;setStatus(d.status||'ラリー中',{duration:d.statusDuration});
+ scoreText=d.score||scoreText;setStatus(d.status||'ラリー中',{duration:d.statusDuration});if(d.pointEvent)showPointScore(d);
 }
 window.addEventListener('message',e=>{if(!active||e.source!==frame?.contentWindow||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;if(d.action==='score')updateScore(d);if(d.action==='status')setStatus(d.text||'',{duration:d.duration});if(d.action==='quit'){stop();}});
 window.addEventListener('keydown',e=>{if(!active)return;const map={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};const k=map[e.key];if(k){keys.add(k);post('move',{keys:[...keys]});e.preventDefault()}if(e.code==='Space'){post('hit',{kind:e.shiftKey?'power':'hit'});e.preventDefault()}if(e.key==='Escape'){const p=$('pauseMenu');if(p){p.hidden=!p.hidden;post(p.hidden?'resume':'pause')}else{stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'))}}});
