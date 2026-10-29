@@ -69,7 +69,7 @@ function setStatus(t,options={}){
  if(bs)bs.textContent=serving?'サーブ':'スイング';
  if(bp)bp.hidden=serving;if(bd)bd.hidden=serving;
  const joy=$('joy');if(joy)joy.style.visibility=serving?'hidden':'visible';
- if(!serving){serveCharging=false;const meter=$('serveMeter');if(meter)meter.hidden=true;}
+ if(!serving&&!serveCharging){const meter=$('serveMeter');if(meter)meter.hidden=true;}
 }
 function updateScore(d){
  const score=$('score');if(!score)return;
