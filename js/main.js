@@ -43,8 +43,8 @@ function openArenaPreview(){
     back.addEventListener('click',()=>{window.TennisEngine?.stop();stage.hidden=true;stage.innerHTML='';stage.style.display='none';hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
     document.body.appendChild(back);
   }
-  show('arena3dBack');
-  msg('3Dスタジアムを表示しました。UIや試合ロジックとは分離した3Dシーンです。');
+  hide('arena3dBack');
+  msg('3Dスタジアムと試合UIを表示しました。');
 }
 window.addEventListener('tennis-engine-exit',()=>{const stage=$('game3dStage');if(stage){window.TennisEngine?.stop();stage.hidden=true;stage.innerHTML='';stage.style.display='none'}hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
 bind('cpuMode',openArenaPreview);bind('practiceMode',openArenaPreview);
