@@ -12,7 +12,7 @@ function makeUI(){
  hud.hidden=false;touch.hidden=false;
  Object.assign(hud.style,{zIndex:'10000',pointerEvents:'none'});
  Object.assign(touch.style,{zIndex:'10001',pointerEvents:'none'});
- if(mb){mb.hidden=false;mb.style.zIndex='10002';}
+ if(mb){mb.hidden=false;mb.style.zIndex='10002';}if(pause)pause.style.zIndex='10003';
  score.innerHTML='<div class="sr summary compactSummary"><b>SET 0 - 0</b><i>GAME 0 - 0</i></div><div class="sr playerPoint"><b>あなた</b><u>0</u></div><div class="sr playerPoint"><b>CPU</b><u>0</u></div>';
  if(touch.dataset.tennisBound==='1')return;
  touch.dataset.tennisBound='1';
