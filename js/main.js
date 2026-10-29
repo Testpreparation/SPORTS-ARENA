@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id), all=s=>[...document.querySelectorAll(s)
 const CFG={apiKey:'AIzaSyB85NfBhRRSLsLxhwewaJYJjWSPxLzaJKE',authDomain:'sports-app-2e1bb.firebaseapp.com',databaseURL:'https://sports-app-2e1bb-default-rtdb.firebaseio.com',projectId:'sports-app-2e1bb',storageBucket:'sports-app-2e1bb.firebasestorage.app',messagingSenderId:'614670493916',appId:'1:614670493916:web:2bc45bf2fc2fce2af2ec19'};
 let db=null,user=null,roomRef=null,role='',name=localStorage.getItem('rs-nick')||'',sport='tennis',format='singles',listeners=[];
 const hide=id=>{const e=$(id);if(e)e.hidden=true},show=id=>{const e=$(id);if(e)e.hidden=false};
-function screen(ids){['menu','playPanel','formatMenu','modeMenu','friendPanel','waitingPanel','tournamentMenu','tournamentCreatePanel','tournamentJoinPanel','tournamentLobbyPanel','tournamentBracketPanel','tournamentMatchPanel','achievementPanel'].forEach(hide);ids.forEach(show)}
+function screen(ids){['menu','tournamentMenu','achievementPanel'].forEach(hide);show('menu');hide('homeActions');hide('playPanel');hide('formatMenu');hide('modeMenu');hide('friendPanel');hide('waitingPanel');if(ids.includes('menu')){show('homeActions');}ids.forEach(id=>{if($(id))show(id)});}
 function msg(t){const e=$('roomStatus');if(e)e.textContent=t;const w=$('waitingStatus');if(w)w.textContent=t}
 function setName(){const e=$('nickInput');if(e)e.value=name;show('nickSetup')}
 function ensureFirebase(){if(db&&user)return Promise.resolve();if(!window.firebase)return Promise.reject(Error('Firebase SDKを読み込めません'));if(!firebase.apps.length)firebase.initializeApp(CFG);const auth=firebase.auth();db=firebase.database();return (auth.currentUser?Promise.resolve(auth.currentUser):auth.signInAnonymously().then(r=>r.user)).then(u=>{user=u;return u})}
@@ -18,12 +18,12 @@ async function joinRoom(){try{const code=($('roomCode').value||'').replace(/\D/g
 function bind(id,fn){const e=$(id);if(e)e.addEventListener('click',fn)}
 bind('nickConfirm',()=>{name=($('nickInput').value||'プレイヤー').trim().slice(0,12)||'プレイヤー';localStorage.setItem('rs-nick',name);hide('nickSetup');$('nm')&&($('nm').textContent=name);show('menu')});
 bind('nickCancel',()=>{hide('nickSetup');show('menu')});
-bind('playNav',()=>screen(['playPanel']));bind('friendNav',()=>{screen(['playPanel']);show('modeMenu');hide('modeChoices');show('friendPanel')});
+bind('playNav',()=>{screen(['playPanel']);show('homeActions');hide('playPanel');show('playPanel')});bind('friendNav',()=>{screen(['playPanel']);show('homeActions');hide('playPanel');show('playPanel');msg('競技を選択してください。');});
 bind('tournamentNav',()=>screen(['tournamentMenu']));bind('achievementNav',()=>screen(['achievementPanel']));
-bind('playBack',()=>screen(['menu']));bind('formatBack',()=>screen(['playPanel']));bind('modeBack',()=>screen(['playPanel']));bind('friendBack',()=>{show('modeChoices');hide('friendPanel')});
-bind('singlesMode',()=>{format='singles';hide('formatMenu');show('modeMenu')});bind('doublesMode',()=>{format='doubles';hide('formatMenu');show('modeMenu')});
+bind('playBack',()=>screen(['menu']));bind('formatBack',()=>{hide('formatMenu');show('playPanel')});bind('modeBack',()=>{hide('modeMenu');show('playPanel')});bind('friendBack',()=>{show('modeChoices');hide('friendPanel')});
+bind('singlesMode',()=>{format='singles';hide('formatMenu');show('modeMenu');show('modeChoices');hide('friendPanel')});bind('doublesMode',()=>{format='doubles';hide('formatMenu');show('modeMenu');show('modeChoices');hide('friendPanel')});
 bind('cpuMode',()=>msg('試合システムは削除されています。画面とフレンド通信のみ利用できます。'));bind('practiceMode',()=>msg('試合システムは削除されています。'));
-bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});bind('createRoom',createRoom);bind('joinRoom',joinRoom);
+bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});all('[data-m]').forEach(b=>b.addEventListener('click',()=>{sport=b.dataset.m||'tennis';$('formatTitle').textContent=(sport==='tennis'?'🎾 テニス':'🏸 バドミントン')+'｜試合形式';hide('playPanel');show('formatMenu')}));bind('createRoom',createRoom);bind('joinRoom',joinRoom);
 bind('waitingBack',()=>{disconnect();show('menu');hide('waitingPanel')});bind('copyRoomCode',()=>navigator.clipboard?.writeText($('waitingCode').textContent||'').catch(()=>{}));
 bind('roomSportSelect',e=>{sport=e.target.value;if(roomRef&&role==='host')roomRef.child('sport').set(sport).catch(()=>{})});
 bind('randomTeams',()=>{if(!roomRef||role!=='host')return;const host=Math.random()<.5?'A':'B';roomRef.update({hostTeam:host,guestTeam:host==='A'?'B':'A'}).catch(()=>{})});
