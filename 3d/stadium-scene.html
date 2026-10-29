@@ -21,7 +21,7 @@ const R=Math.random,TAU=6.28319;
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
-const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.5,2500);cam.position.set(-9,9.5,20);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.5,2500);cam.position.set(64,40,64);
 const ctl=new THREE.OrbitControls(cam,renderer.domElement);ctl.target.set(0,4,0);ctl.enableDamping=true;ctl.maxPolarAngle=1.5;ctl.maxDistance=220;
 const T=(w,h,f,rep)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'));const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.anisotropy=16;if(rep){t.wrapS=t.wrapT=THREE.RepeatWrapping}return t};
 const noise=(g,w,h,n,a)=>{for(let i=0;i<n;i++){g.fillStyle=`rgba(${R()<.5?0:255},${R()<.5?0:255},${R()<.5?0:255},${R()*a})`;g.fillRect(R()*w,R()*h,1+R()*2,1+R()*2)}};
