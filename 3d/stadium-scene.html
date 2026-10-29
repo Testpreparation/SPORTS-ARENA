@@ -220,14 +220,14 @@ const C=s=>new THREE.Color(s),dayC=[C('#3f7fd6'),C('#c4dcf2'),C('#8a9a8a')],nigh
 let tod=0,lapse=false,lastEnv=-9,lastTod=-9,lastT=performance.now();
 const sm=(a,b,x)=>{x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x)};
 const moon=new THREE.DirectionalLight(0x8aa0e0,0);moon.position.set(-60,90,-40);scene.add(moon);
-const tb=document.createElement('button');tb.onclick=()=>{lapse=!lapse;lastTod=-9};bot.appendChild(tb);
+const tb=document.createElement('button');tb.onclick=()=>{lapse=!lapse;lastT=performance.now();lastTod=-9;applyTime(true)};bot.appendChild(tb);
 function applyTime(force){const a=(tod-6)/12*Math.PI,e=Math.sin(a),df=sm(-.06,.3,e),warm=e>-.25?Math.exp(-e*e/.012):0;
  skyU.top.value.lerpColors(nightC[0],dayC[0],df);skyU.mid.value.lerpColors(nightC[1],dayC[1],df).lerp(duskMid,warm*.75);skyU.bot.value.lerpColors(nightC[2],dayC[2],df);skyU.night.value=1-df;
  const sd=skyU.sunDir.value.set(-Math.cos(a)*.9,e,.45).normalize();sun.position.set(sd.x*140,Math.max(sd.y,.05)*140,sd.z*140);sun.intensity=3*sm(0,.25,e);sun.color.set(0xffffff).lerp(sunWarm,warm*.8);
  moon.intensity=.45*(1-df);hemi.intensity=(.25+.65*df)*(night?.35:1);lampMat.color.set(df<.5?0xffe9b0:0x777777);scene.fog.color.copy(skyU.mid.value);
  if(force||Math.abs(tod-lastEnv)>.25){lastEnv=tod;if(scene.environment)scene.environment.dispose();scene.environment=pm.fromScene(envScene,0,.1,3000).texture}
  const hh=Math.floor(tod)%24,mm=Math.floor((tod%1)*60);tb.textContent=(lapse?'⏩ ':'🕒 ')+String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')}
-function tick(){const n=performance.now(),dt=Math.min(.1,Math.max(0,(n-lastT)/1000));lastT=n;const k=Math.floor(n/4000)%slides.length;if(k!==sl){sl=k;drawSlide(k)}if(lapse)tod=(tod+dt*.25)%24;if(Math.abs(tod-lastTod)>.004){lastTod=tod;applyTime(false)}}
+function tick(){const n=performance.now(),dt=Math.min(.1,Math.max(0,(n-lastT)/1000));lastT=n;const k=Math.floor(n/4000)%slides.length;if(k!==sl){sl=k;drawSlide(k)}if(lapse){tod=(tod+dt*.25)%24;if(Math.abs(tod-lastTod)>.004){lastTod=tod;applyTime(false)}}}
 const spC=document.createElement('canvas');spC.width=512;spC.height=256;const spX=spC.getContext('2d'),spT=new THREE.CanvasTexture(spC);spT.encoding=THREE.sRGBEncoding;sbM.map=spT;sbM.needsUpdate=true;
 const slides=[['#0d3b8a','#ffffff','NOVA','MOTORS','Drive the Future'],['#c0392b','#ffffff','AQUA','BEVERAGE','Refresh Your Game'],['#0b6e4f','#f2f2f2','GREEN','ENERGY','Power for Everyone'],['#2a2a30','#ffb020','ZENITH','WATCH','Every Second Counts'],['#5b2a86','#ffffff','LUMA','TELECOM','Stay Connected']];
 let sl=-1;function drawSlide(i){const[b,f,a,c,t]=slides[i],g=spX,gr=g.createLinearGradient(0,0,512,256);gr.addColorStop(0,b);gr.addColorStop(1,'#000');g.fillStyle=gr;g.fillRect(0,0,512,256);g.fillStyle=f;g.font='bold 30px sans-serif';g.fillText('SPONSOR',20,38);g.font='bold 92px sans-serif';g.fillText(a,20,140);g.font='bold 56px sans-serif';g.fillText(c,20,198);g.font='24px sans-serif';g.fillText(t,20,240);g.beginPath();g.arc(440,70,34,0,TAU);g.fill();g.fillStyle=b;g.beginPath();g.arc(440,70,16,0,TAU);g.fill();spT.needsUpdate=true}
