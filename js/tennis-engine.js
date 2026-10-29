@@ -13,6 +13,8 @@ function makeUI(){
  Object.assign(hud.style,{zIndex:'10000',pointerEvents:'none'});
  Object.assign(touch.style,{zIndex:'10001',pointerEvents:'none'});
  if(mb){mb.hidden=false;mb.style.zIndex='10002';}if(pause)pause.style.zIndex='10003';
+ if(meter){meter.hidden=true;Object.assign(meter.style,{position:'fixed',display:'flex',zIndex:'10020',pointerEvents:'none',visibility:'visible',opacity:'1'});}
+ if(meterFill)Object.assign(meterFill.style,{display:'block',visibility:'visible',height:'8%',minHeight:'4px'});
  score.innerHTML='<div class="sr summary compactSummary"><b>SET 0 - 0</b><i>GAME 0 - 0</i></div><div class="sr playerPoint"><b>あなた</b><u>0</u></div><div class="sr playerPoint"><b>CPU</b><u>0</u></div>';
  if(touch.dataset.tennisBound==='1')return;
  touch.dataset.tennisBound='1';
@@ -30,11 +32,11 @@ function makeUI(){
  const joyEnd=ev=>{if(joyId!==ev.pointerId)return;joyId=null;origin=null;aim={x:0,y:0};knob.style.transform='';post('move',{keys:[]})};
  joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
  function currentServePower(){const cycle=.8,elapsed=Math.max(0,(performance.now()-serveChargeStart)/1000),phase=(elapsed%cycle)/cycle,level=phase<.4?phase/.4:phase<.55?1:(1-phase)/.45;return .25+.75*Math.max(0,Math.min(1,level))}
- function updateServeMeter(){if(!serveCharging||!meterFill)return;const power=currentServePower();meterFill.style.height=(8+(power-.25)/.75*92)+'%';requestAnimationFrame(updateServeMeter)}
- function beginServeCharge(button,ev){if(!active||button.hidden)return;ev.preventDefault();heldButton=button;serveCharging=true;serveChargeStart=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';if(meter){meter.hidden=false;if(meterFill)meterFill.style.height='8%'}updateServeMeter()}
+ function updateServeMeter(){if(!serveCharging||!meterFill)return;const power=currentServePower();meterFill.style.height=(8+(power-.25)/.75*92)+'%';if(meter){meter.hidden=false;meter.style.display='flex';meter.style.visibility='visible';meter.style.opacity='1'}requestAnimationFrame(updateServeMeter)}
+ function beginServeCharge(button,ev){if(!active||button.hidden)return;ev.preventDefault();heldButton=button;serveCharging=true;serveChargeStart=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';if(meter){meter.hidden=false;Object.assign(meter.style,{display:'flex',visibility:'visible',opacity:'1',zIndex:'10020',pointerEvents:'none'});if(meterFill)meterFill.style.height='8%'}updateServeMeter()}
  function bindHit(button,kind){
-  button.addEventListener('pointerdown',ev=>{if(button.hidden||!active)return;if(button===bs&&(lastStatus==='サーブしてください'||lastStatus.startsWith('サーブ：'))){beginServeCharge(button,ev);return}ev.preventDefault();heldButton=button;hitStarted=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';clearTimeout(holdTimer);holdTimer=setTimeout(()=>{if(heldButton===button&&kind==='hit')button.textContent='強打！'},420)});
-  const finish=ev=>{if(heldButton!==button)return;ev.preventDefault();if(serveCharging){const power=currentServePower();serveCharging=false;heldButton=null;button.style.transform='';button.textContent='サーブ';if(meter)meter.hidden=true;post('hit',{kind:'hit',aim,power});return}const elapsed=performance.now()-hitStarted;heldButton=null;hitStarted=0;clearTimeout(holdTimer);button.style.transform='';button.textContent=lastStatus.includes('サーブ')?'サーブ':(button===bs?'スイング':button===bp?'打撃':'ドロップ');post('hit',{kind:kind==='hit'&&elapsed>420?'power':kind,aim});};
+  button.addEventListener('pointerdown',ev=>{if(button.hidden||!active)return;if(button===bs&&(/サーブ/.test(lastStatus)||button.textContent.includes('サーブ'))){beginServeCharge(button,ev);return}ev.preventDefault();heldButton=button;hitStarted=performance.now();try{button.setPointerCapture(ev.pointerId)}catch(_){}button.style.transform='scale(.94)';clearTimeout(holdTimer);holdTimer=setTimeout(()=>{if(heldButton===button&&kind==='hit')button.textContent='強打！'},420)});
+  const finish=ev=>{if(heldButton!==button)return;ev.preventDefault();if(serveCharging){const power=currentServePower();serveCharging=false;heldButton=null;button.style.transform='';button.textContent='サーブ';if(meter){meter.hidden=true;meter.style.display='none'}post('hit',{kind:'hit',aim,power});return}const elapsed=performance.now()-hitStarted;heldButton=null;hitStarted=0;clearTimeout(holdTimer);button.style.transform='';button.textContent=lastStatus.includes('サーブ')?'サーブ':(button===bs?'スイング':button===bp?'打撃':'ドロップ');post('hit',{kind:kind==='hit'&&elapsed>420?'power':kind,aim});};
   button.addEventListener('pointerup',finish);button.addEventListener('pointercancel',finish);
  }
  bindHit(bs,'hit');bindHit(bp,'power');bindHit(bd,'drop');
