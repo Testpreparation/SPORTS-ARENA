@@ -272,12 +272,12 @@ const tennisGame=(()=> {
   if(u.swingTime>0)u.swingTime=Math.max(0,u.swingTime-dt);
  } function say(text,duration=0){status=text;parent.postMessage({type:'tennis-engine',action:'status',text,duration},location.origin)}
  function scoreLabel(){const p=['0','15','30','40'];let a,b;if(points[0]>=3&&points[1]>=3){a=points[0]===points[1]?'40':points[0]>points[1]?'AD':'40';b=points[0]===points[1]?'40':points[1]>points[0]?'AD':'40'}else{a=p[Math.min(points[0],3)];b=p[Math.min(points[1],3)]}return a+' - '+b+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
- function emitScore(text=status){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),status:text},location.origin)}
- function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);bounceCount=0;serveReady=true;pointLock=false;lastHitter=0;say('サーブしてください');emitScore()}
+ function emitScore(text=status,pointEvent=false){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),status:text,pointEvent,matchOver},location.origin)}
+ function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);bounceCount=0;serveReady=true;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
  function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false,setWon=false;
   if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];if(sets[who]>=1){setWon=true;matchOver=true;live=false;}}}
   const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
-  emitScore(text);say(text,1200);if(setWon){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who},location.origin);return}setTimeout(()=>{if(!live)return;resetBall()},1200);
+  emitScore(text,true);say(text,1200);if(setWon){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who},location.origin);return}setTimeout(()=>{if(!live)return;resetBall()},1200);
  }
  function launch(kind,who,aim={x:0,y:0},power=.65){
   if(!live||pointLock)return;
