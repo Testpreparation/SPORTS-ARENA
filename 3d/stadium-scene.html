@@ -260,7 +260,7 @@ const tennisGame=(()=> {
   g.position.set(x,0,z);g.scale.setScalar(.95);
   // SportsRigモデルの正面はローカル +Z。両者ともネット側を向く初期姿勢。
   g.rotation.y=isOpp?Math.PI/2:-Math.PI/2;
-  g.userData={rig,isOpp,motion:'idle',swingTime:0};
+  g.userData={rig,isOpp,motion:'idle',swingTime:0,vx:0,vz:0,serveMotion:false};
   root.add(g);return g;
  }
  function animatePlayer(p,dt,moving){
@@ -301,10 +301,11 @@ const tennisGame=(()=> {
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim,power){launch(kind||'hit',0,aim||{x:0,y:0},power===undefined?.65:power)}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
-  const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0);
+  const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0),moveLen=Math.hypot(dx,dz)||1,pu=player.userData,accel=1-Math.exp(-13*dt);
   const oldPX=player.position.x,oldPZ=player.position.z;
-  player.position.x=THREE.MathUtils.clamp(player.position.x+dx*speed*dt,9.5,11.4);
-  player.position.z=THREE.MathUtils.clamp(player.position.z+dz*speed*dt,-5.0,5.0);
+  pu.vx+=(dx/moveLen*speed-pu.vx)*accel;pu.vz+=(dz/moveLen*speed-pu.vz)*accel;
+  player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,9.5,11.4);
+  player.position.z=THREE.MathUtils.clamp(player.position.z+pu.vz*dt,-5.0,5.0);
   const playerMoving=Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.002;
   if(playerMoving)player.rotation.y=Math.atan2(player.position.z-oldPZ,-(player.position.x-oldPX));
   animatePlayer(player,dt,playerMoving);
@@ -318,7 +319,7 @@ const tennisGame=(()=> {
   const opponentMoving=Math.hypot(opponent.position.x-oldOX,opponent.position.z-oldOZ)>.002;
   if(opponentMoving)opponent.rotation.y=Math.atan2(opponent.position.z-oldOZ,-(opponent.position.x-oldOX));
   animatePlayer(opponent,dt,opponentMoving);
-  const previousZ=ball.position.x;const ballSpeed=ballV.length(),drag=.02*ballSpeed;ballV.x-=drag*ballV.x*dt;ballV.y+=(-9.8-drag*ballV.y)*dt;ballV.z-=drag*ballV.z*dt;ball.position.addScaledVector(ballV,dt);
+  const previousZ=ball.position.x;const substeps=Math.max(1,Math.ceil(dt/(1/120))),h=dt/substeps;for(let i=0;i<substeps;i++){const ballSpeed=ballV.length(),drag=.012*ballSpeed;ballV.x-=drag*ballV.x*h;ballV.y+=(-9.8-drag*ballV.y)*h;ballV.z-=drag*ballV.z*h;ball.position.addScaledVector(ballV,h)}
   const sh=ball.userData.shadow;sh.position.set(ball.position.x,.025,ball.position.z);const scale=THREE.MathUtils.clamp(1-ball.position.y*.08,.25,1);sh.scale.setScalar(scale);
   if(previousZ>=-.1&&ball.position.x<-.1&&ball.position.y<1.15){point(1,'ネット');return}
   if(previousZ<=-.1&&ball.position.x>-.1&&ball.position.y<1.15){point(0,'ネット');return}
