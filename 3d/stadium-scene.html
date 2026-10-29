@@ -232,7 +232,9 @@ const spC=document.createElement('canvas');spC.width=512;spC.height=256;const sp
 const slides=[['#0d3b8a','#ffffff','NOVA','MOTORS','Drive the Future'],['#c0392b','#ffffff','AQUA','BEVERAGE','Refresh Your Game'],['#0b6e4f','#f2f2f2','GREEN','ENERGY','Power for Everyone'],['#2a2a30','#ffb020','ZENITH','WATCH','Every Second Counts'],['#5b2a86','#ffffff','LUMA','TELECOM','Stay Connected']];
 let sl=-1;function drawSlide(i){const[b,f,a,c,t]=slides[i],g=spX,gr=g.createLinearGradient(0,0,512,256);gr.addColorStop(0,b);gr.addColorStop(1,'#000');g.fillStyle=gr;g.fillRect(0,0,512,256);g.fillStyle=f;g.font='bold 30px sans-serif';g.fillText('SPONSOR',20,38);g.font='bold 92px sans-serif';g.fillText(a,20,140);g.font='bold 56px sans-serif';g.fillText(c,20,198);g.font='24px sans-serif';g.fillText(t,20,240);g.beginPath();g.arc(440,70,34,0,TAU);g.fill();g.fillStyle=b;g.beginPath();g.arc(440,70,16,0,TAU);g.fill();spT.needsUpdate=true}
 tod=new Date().getHours()+new Date().getMinutes()/60;
-setCourt('badm');setNight(false);
+const requestedCourt=new URLSearchParams(location.search).get('sport');
+const courtKey=({badminton:'badm',badm:'badm',tennis:'tennis',volley:'volley',tt:'tt'})[requestedCourt]||'badm';
+setCourt(courtKey);setNight(false);
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 (function loop(){requestAnimationFrame(loop);if(tp){cam.position.lerp(tp,.07);ctl.target.lerp(tt,.07);if(cam.position.distanceTo(tp)<.2)tp=null}tick();ctl.update();renderer.render(scene,cam)})();
 </script></body></html>
