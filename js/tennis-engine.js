@@ -7,7 +7,7 @@ function button(label,action,cls=''){const b=document.createElement('button');b.
 function style(el,css){Object.assign(el.style,css);return el}
 function makeUI(){
  const hud=$('hud'),touch=$('touch'),score=$('score'),joy=$('joy'),knob=$('knob');
- const bs=$('bs'),bp=$('bp'),bd=$('bd'),mb=$('mb'),pause=$('pauseMenu');
+ const bs=$('bs'),bp=$('bp'),bd=$('bd'),mb=$('mb'),pause=$('pauseMenu'),meter=$('serveMeter'),meterFill=$('serveMeterFill');
  if(!hud||!touch||!score||!joy||!knob||!bs||!bp||!bd)throw new Error('BADMINTON-ARENA共通UIが見つかりません');
  hud.hidden=false;touch.hidden=false;
  Object.assign(hud.style,{zIndex:'10000',pointerEvents:'none'});
