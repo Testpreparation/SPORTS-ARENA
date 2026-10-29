@@ -129,7 +129,7 @@
   function clearRoot() {
     if (!state.root) return;
     while (state.root.children.length) {
-      const child = state.root.children.pop();
+      const child = state.root.children[state.root.children.length - 1];
       state.root.remove(child);
       child.traverse?.(o => {
         if (o.geometry) o.geometry.dispose();
@@ -231,5 +231,7 @@
     return {sport,label:c.label,dimensions:{width:c.w,length:c.l},group:arena};
   }
 
-  window[API_KEY] = Object.freeze({ init, addModel, setCamera, buildArena, show, hide, dispose });
+  function isInitialized() { return !!(state.renderer && state.scene && state.camera && state.root); }
+
+  window[API_KEY] = Object.freeze({ init, isInitialized, addModel, setCamera, buildArena, show, hide, dispose });
 })();
