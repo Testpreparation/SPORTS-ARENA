@@ -30,7 +30,7 @@ function openArenaPreview(){
   Object.assign(stage.style,{position:'fixed',inset:'0',width:'100vw',height:'100dvh',zIndex:'9998',background:'#0b0d12',display:'block'});
   stage.hidden=false;
   const frame=document.createElement('iframe');
-  frame.src='./3d/stadium-scene.html';
+  frame.src='./3d/stadium-scene.html?sport='+encodeURIComponent(sport);
   frame.title='3Dスタジアム';
   frame.setAttribute('allow','fullscreen');
   Object.assign(frame.style,{display:'block',width:'100%',height:'100%',border:'0',background:'#0b0d12'});
