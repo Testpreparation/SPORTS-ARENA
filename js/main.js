@@ -46,7 +46,7 @@ function openArenaPreview(){
   msg('3Dスタジアムを表示しました。UIや試合ロジックとは分離した3Dシーンです。');
 }
 bind('cpuMode',openArenaPreview);bind('practiceMode',openArenaPreview);
-bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});all('[data-m]').forEach(b=>b.addEventListener('click',()=>{sport=b.dataset.m||'tennis';$('formatTitle').textContent=(sport==='tennis'?'🎾 テニス':'🏸 バドミントン')+'｜試合形式';hide('menu');hide('menu');hide('playPanel');show('formatMenu')}));bind('createRoom',createRoom);bind('joinRoom',joinRoom);
+bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});all('[data-m]').forEach(b=>b.addEventListener('click',()=>{sport=b.dataset.m||'tennis';$('formatTitle').textContent=(sport==='tennis'?'🎾 テニス':'🏸 バドミントン')+'｜試合形式';hide('menu');hide('playPanel');const format=$('formatMenu');if(format){format.style.zIndex='20';format.hidden=false;format.style.display='flex';format.style.visibility='visible'} }));bind('createRoom',createRoom);bind('joinRoom',joinRoom);
 bind('waitingBack',()=>{disconnect();show('menu');hide('waitingPanel')});bind('copyRoomCode',()=>navigator.clipboard?.writeText($('waitingCode').textContent||'').catch(()=>{}));
 bind('roomSportSelect',e=>{sport=e.target.value;if(roomRef&&role==='host')roomRef.child('sport').set(sport).catch(()=>{})},'change');
 bind('randomTeams',()=>{if(!roomRef||role!=='host')return;const host=Math.random()<.5?'A':'B';roomRef.update({hostTeam:host,guestTeam:host==='A'?'B':'A'}).catch(()=>{})});
