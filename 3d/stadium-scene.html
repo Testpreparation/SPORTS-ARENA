@@ -364,6 +364,11 @@ const tennisGame=(()=> {
   const opponentMoving=Math.hypot(opponent.position.x-oldOX,opponent.position.z-oldOZ)>.002;
   if(opponentMoving){const target=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.atan2(opponent.position.x-oldOX,opponent.position.z-oldOZ));opponent.quaternion.slerp(target,1-Math.exp(-8*dt));}
   animatePlayer(opponent,dt,opponentMoving);
+  // CPUは相手コートに飛んできたボールを、バウンド後だけでなく打てる高さでも自動で返球する。
+  if(lastHitter===0&&ball.position.x<-.6&&ballV.x<0&&ball.position.y<3.15){
+   const reach=Math.hypot(ball.position.x-opponent.position.x,ball.position.z-opponent.position.z);
+   if(reach<2.35){launch('hit',1,{x:(Math.random()-.5)*.35,y:0},.58);}
+  }
   const state={p:{x:ball.position.x,y:ball.position.y,z:ball.position.z},v:{x:ballV.x,y:ballV.y,z:ballV.z},w:{x:ballSpin.x,y:ballSpin.y,z:ballSpin.z}};
   const substeps=Math.max(1,Math.ceil(dt/(1/240))),h=dt/substeps;let physicsEvent=0;
   for(let i=0;i<substeps;i++){const ev=physicsStep(state,h,false);if(ev==='net'){ball.userData.net=true;physicsEvent='net'}if(ev==='ground'){physicsEvent='ground';physicsBounce(state);bounceCount++;}}
@@ -377,7 +382,7 @@ const tennisGame=(()=> {
    if(currentServe&&lastHitter===0){const validServe=ball.position.x<=-COURT.serviceLine&&ball.position.x>=-COURT.baseline&&Math.abs(ball.position.z)<=COURT.singlesHalfWidth&&Math.sign(ball.position.z||serveTargetZ)===Math.sign(serveTargetZ);currentServe=false;if(!validServe){if(serveFaults===0){serveFaults=1;serveReady=true;serveInProgress=false;player.userData.serveMotion=false;ball.visible=false;say('フォルト：セカンドサーブ',1000);return}point(1,'ダブルフォルト');return}serveFaults=0;serveSide++;}
    if(Math.abs(ball.position.x)>COURT.baseline||Math.abs(ball.position.z)>COURT.singlesHalfWidth){point(lastHitter===0?1:0,'アウト');return}
    if(bounceCount>=2){point(lastHitter===0?1:0,'ツーバウンド');return}
-   if(side===1&&lastHitter===0){setTimeout(()=>{if(!live||pointLock)return;const near=Math.hypot(ball.position.x-opponent.position.x,ball.position.z-opponent.position.z);if(near<3.8){launch('hit',1)}else{point(0,'CPUが届かない');}},180)}
+   if(side===1&&lastHitter===0){setTimeout(()=>{if(!live||pointLock||lastHitter!==0)return;const near=Math.hypot(ball.position.x-opponent.position.x,ball.position.z-opponent.position.z);if(near<5.2){launch('hit',1,{x:(Math.random()-.5)*.35,y:0},.58)}else{point(0,'CPUが届かない');}},90)}
   }
   if(ball.position.y<-.2){point(lastHitter===0?1:0,'ミス');return}
  }
