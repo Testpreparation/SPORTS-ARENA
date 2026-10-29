@@ -235,6 +235,83 @@ tod=new Date().getHours()+new Date().getMinutes()/60;
 const requestedCourt=new URLSearchParams(location.search).get('sport');
 const courtKey=({badminton:'badm',badm:'badm',tennis:'tennis',volley:'volley',tt:'tt'})[requestedCourt]||'badm';
 setCourt(courtKey);setNight(false);
+
+/* ---------- Tennis match engine (isolated from the stadium renderer) ---------- */
+const tennisGame=(()=> {
+ let live=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,mode='cpu';
+ let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
+ const root=new THREE.Group();G.tennis.add(root);
+ const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+ const skin=mat(0xd9a47d),shirt=mat(0x2475d8),shorts=mat(0x17283d),shoe=mat(0xf4f5f7),hair=mat(0x34251f),opShirt=mat(0xd94c45),ballMat=mat(0xd9ef57,.4);
+ function makePlayer(x,z,isOpp=false){
+  const g=new THREE.Group(),top=isOpp?opShirt:shirt;
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.25,.55,4,8),top);torso.position.y=1.18;g.add(torso);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.18,16,12),skin);head.position.y=1.72;g.add(head);
+  const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.185,16,8,0,Math.PI*2,0,Math.PI*.52),hair);hairCap.position.y=1.78;g.add(hairCap);
+  const hips=new THREE.Mesh(new THREE.BoxGeometry(.4,.22,.25),shorts);hips.position.y=.78;g.add(hips);
+  for(const s of [-1,1]){
+   const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.42,3,6),shorts);leg.position.set(s*.12,.42,0);g.add(leg);
+   const foot=new THREE.Mesh(new THREE.BoxGeometry(.13,.09,.23),shoe);foot.position.set(s*.12,.08,-.045);g.add(foot);
+   const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.06,.4,3,6),skin);arm.position.set(s*.29,1.25,0);arm.rotation.z=s*.18;g.add(arm);
+  }
+  const racket=new THREE.Group(),rim=new THREE.Mesh(new THREE.TorusGeometry(.19,.025,8,24),mat(0x222a32));rim.scale.set(.8,1.25,1);racket.add(rim);
+  const strings=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0xdde7ed,wireframe:true,transparent:true,opacity:.7}));strings.scale.set(.8,1.25,1);strings.position.z=.005;racket.add(strings);
+  const grip=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,.35,8),mat(0x272b32));grip.position.y=-.25;racket.add(grip);
+  racket.position.set(.42,1.12,-.12);racket.rotation.z=-.28;g.add(racket);
+  g.position.set(x,0,z);root.add(g);return g;
+ }
+ function say(text){status=text;parent.postMessage({type:'tennis-engine',action:'status',text},location.origin)}
+ function scoreLabel(){const p=['0','15','30','40','AD'];return p[Math.min(points[0],4)]+' - '+p[Math.min(points[1],4)]+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
+ function emitScore(text=status){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),status:text},location.origin)}
+ function resetBall(){ball.position.set(player.position.x*.35,1.25,4.25);ballV.set(0,0,0);bounceCount=0;serveReady=true;pointLock=false;lastHitter=0;say('サーブしてください');emitScore()}
+ function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false;
+  if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];}}
+  const text=(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
+  emitScore(text);say(text);setTimeout(()=>{if(!live)return;resetBall()},1200);
+ }
+ function launch(kind,who){
+  if(!live||pointLock)return;
+  if(who===0&&serveReady){serveReady=false;lastHitter=0;ball.position.set(player.position.x,1.65,4.1);const tx=opponent.position.x+(Math.random()-.5)*2.5;const dir=new THREE.Vector3(tx-ball.position.x,kind==='drop'?2.4:kind==='power'?3.5:4.6,-9).normalize();const speed=kind==='power'?18:kind==='drop'?10:14;ballV.copy(dir.multiplyScalar(speed));bounceCount=0;say('サーブ！');return}
+  const p=who===0?player:opponent,dx=ball.position.x-p.position.x,dz=ball.position.z-p.position.z;
+  if(Math.abs(dx)>2.5||Math.abs(dz)>2.3||ball.position.y>3.7){if(who===0)say('ボールに近づいてタイミングよく打ってください');return}
+  lastHitter=who;bounceCount=0;
+  let targetX=(who===0?opponent:player).position.x+(Math.random()-.5)*(kind==='drop'?1.4:4.6);
+  targetX=THREE.MathUtils.clamp(targetX,-10.5,10.5);
+  const targetZ=who===0?-4.8:4.8;
+  const delta=new THREE.Vector3(targetX-ball.position.x,kind==='drop'?2.2:kind==='power'?3.8:4.7,targetZ-ball.position.z).normalize();
+  const speed=kind==='power'?20:kind==='drop'?9:kind==='slice'?12:15;
+  ballV.copy(delta.multiplyScalar(speed));say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
+ }
+ function start(){if(live)return;live=true;G.tennis.visible=true;setCourt('tennis');cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
+  ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
+  resetBall();say('サーブしてください');}
+ function stop(){live=false;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
+ function move(next){keys=new Set(next||[])}
+ function hit(kind){launch(kind||'hit',0)}
+ function update(){if(!live)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
+  const speed=5.6,dx=(keys.has('right')?1:0)-(keys.has('left')?1:0),dz=(keys.has('down')?1:0)-(keys.has('up')?1:0);
+  player.position.x=THREE.MathUtils.clamp(player.position.x+dx*speed*dt,-10.8,10.8);player.position.z=THREE.MathUtils.clamp(player.position.z+dz*speed*dt,1.3,5.25);
+  const destX=THREE.MathUtils.clamp(ball.position.x,-10,10);opponent.position.x=THREE.MathUtils.clamp(opponent.position.x+(destX-opponent.position.x)*Math.min(1,dt*2.3),-10.8,10.8);
+  opponent.position.z=-4.5;
+  ballV.y-=9.81*dt;ball.position.addScaledVector(ballV,dt);
+  const sh=ball.userData.shadow;sh.position.set(ball.position.x,.025,ball.position.z);const scale=THREE.MathUtils.clamp(1-ball.position.y*.08,.25,1);sh.scale.setScalar(scale);
+  if(ball.position.z<-.1&&ball.position.z+ballV.z*dt>=-.1&&ball.position.y<1.15){point(0,'ネット');return}
+  if(ball.position.z>-.1&&ball.position.z+ballV.z*dt<=-.1&&ball.position.y<1.15){point(1,'ネット');return}
+  if(ball.position.y<=.11){ball.position.y=.11;if(Math.abs(ballV.x)>0)ballV.x*=.88;ballV.y=Math.abs(ballV.y)*.68;ballV.x*=.92;ballV.z*=.92;bounceCount++;
+   const side=ball.position.z<0?1:0;
+   if(Math.abs(ball.position.x)>11.9||Math.abs(ball.position.z)>5.55){point(lastHitter===0?1:0,'アウト');return}
+   if(bounceCount>=2){point(lastHitter===0?1:0,'2バウンド');return}
+   if(side===1&&lastHitter===0){setTimeout(()=>{if(!live||pointLock)return;const near=Math.hypot(ball.position.x-opponent.position.x,ball.position.z-opponent.position.z);if(near<3.8){launch('hit',1)}else{point(0,'CPUが届かない');}},180)}
+  }
+  if(ball.position.y<-.2){point(lastHitter===0?1:0,'ミス');return}
+ }
+ function onMessage(e){if(e.source!==parent||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;
+  if(d.action==='start')start();if(d.action==='stop')stop();if(d.action==='move')move(d.keys);if(d.action==='hit')hit(d.kind)}
+ addEventListener('message',onMessage);let prev=performance.now();function loop(){requestAnimationFrame(loop);const n=performance.now();if(live){update();prev=n}}loop();
+ return{start,stop};
+})();
+
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 (function loop(){requestAnimationFrame(loop);if(tp){cam.position.lerp(tp,.07);ctl.target.lerp(tt,.07);if(cam.position.distanceTo(tp)<.2)tp=null}tick();ctl.update();renderer.render(scene,cam)})();
 </script></body></html>
