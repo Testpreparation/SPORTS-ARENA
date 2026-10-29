@@ -65,7 +65,7 @@ function setStatus(t,options={}){
  lastStatus=String(t||'');
  const e=$('msg');if(e){e.textContent=lastStatus;e.hidden=!lastStatus;}
  if(lastStatus&&Number.isFinite(options.duration)&&options.duration>0){const expected=lastStatus;statusTimer=setTimeout(()=>{if(lastStatus===expected){lastStatus='';const msg=$('msg');if(msg)msg.textContent='';}},options.duration);}
- const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください';
+ const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください'||lastStatus.startsWith('サーブ：');
  if(bs)bs.textContent=serving?'サーブ':'スイング';
  if(bp)bp.hidden=serving;if(bd)bd.hidden=serving;
  const joy=$('joy');if(joy)joy.style.visibility=serving?'hidden':'visible';
