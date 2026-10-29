@@ -56,7 +56,7 @@ function showPointScore(d){
  const clean=v=>String(v??'').replace(/[<>&"]/g,'');
  const home=clean(localStorage.getItem('rs-nick')||'あなた'),away='CPU';
  const a=p(pts[0],pts[1]),b=p(pts[1],pts[0]);
- el.innerHTML='<div class="ps-title">'+(d.matchOver?'MATCH POINT':'LIVE SCORE')+'</div><div class="ps-main"><span>'+a+'</span><span>－</span><span>'+b+'</span></div><div class="ps-sub"><span class="ps-names">'+home+'</span> 対 <span class="ps-names">'+away+'</span>　セット '+sets[0]+'-'+sets[1]+' ／ ゲーム '+games[0]+'-'+games[1]+'</div>';
+ el.innerHTML='<div class="ps-title">'+(d.matchOver?'試合終了':'ポイント')+'</div><div class="ps-main"><span>'+a+'</span><span>－</span><span>'+b+'</span></div><div class="ps-sub"><span class="ps-names">'+home+'</span> 対 <span class="ps-names">'+away+'</span>　セット '+sets[0]+'-'+sets[1]+' ／ ゲーム '+games[0]+'-'+games[1]+'</div>';
  el.hidden=false;
  pointScoreFadeTimer=setTimeout(()=>{if(!el.hidden)el.classList.add('fadeOut')},1700);
  pointScoreTimer=setTimeout(()=>{el.hidden=true;el.classList.remove('fadeOut');},2400);
