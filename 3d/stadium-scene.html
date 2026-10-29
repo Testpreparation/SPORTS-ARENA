@@ -294,7 +294,7 @@ const tennisGame=(()=> {
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim){launch(kind||'hit',0,aim||{x:0,y:0})}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
-  const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('right')?1:0)-(keys.has('left')?1:0);
+  const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0);
   const oldPX=player.position.x,oldPZ=player.position.z;
   player.position.x=THREE.MathUtils.clamp(player.position.x+dx*speed*dt,9.5,11.4);
   player.position.z=THREE.MathUtils.clamp(player.position.z+dz*speed*dt,-5.0,5.0);
