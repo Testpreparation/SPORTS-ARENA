@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07121d">
+  <meta name="description" content="REAL TENNIS ARENA - A stylized 3D tennis game for the web.">
+  <title>REAL TENNIS ARENA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+</head>
+<body>
+  <main id="app">
+    <canvas id="game-canvas" aria-label="3D tennis arena"></canvas>
+    <div class="scene-vignette" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="profile-chip" href="#" aria-label="Player profile" onclick="return false">
+        <span class="profile-avatar" aria-hidden="true">P</span>
+        <span class="profile-copy"><strong>GUEST PLAYER</strong><small>PLAYER PROFILE</small></span>
+      </a>
+      <div class="top-actions">
+        <button class="icon-button hamburger-button" id="menu-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="top-menu" id="top-menu" hidden>
+          <button id="settings-open" class="top-menu-item"><span>⚙</span> 設定 <b>›</b></button>
+        </div>
+      </div>
+    </header>
+
+    <section class="screen screen-home is-active" id="screen-home">
+      <div class="home-copy">
+        <div class="eyebrow"><span class="eyebrow-line"></span> THE NEXT POINT IS YOURS</div>
+        <h1>OWN THE<br><em>COURT.</em></h1>
+        <p class="hero-description">自分のスタイルで、コートを支配しよう。</p>
+        <div class="home-buttons home-buttons-hidden" aria-hidden="true"></div>
+        <div class="feature-row">
+          <div><span class="feature-number">01</span><span><b>3D ARENA</b><small>IMMERSIVE COURT</small></span></div>
+          <div><span class="feature-number">02</span><span><b>YOUR STYLE</b><small>STYLIZED ATHLETES</small></span></div>
+        </div>
+      </div>
+      <div class="home-right-actions" aria-label="Game modes">
+        <button class="home-mode-button home-mode-primary" id="main-play-button"><span class="mode-icon">▶</span><span class="mode-copy"><b>プレイ</b><small>PLAY MATCH</small></span><span class="mode-arrow">↗</span></button>
+        <button class="home-mode-button" id="friend-match-button"><span class="mode-icon">♧</span><span class="mode-copy"><b>フレンド対戦</b><small>PLAY WITH FRIENDS</small><span class="mode-status">未実装</span></span><span class="mode-arrow">↗</span></button>
+      </div>
+      <div class="home-side-label">SERVE · RALLY · WIN</div>
+      <div class="bottom-caption"><span>01 / HOME</span><span>LANDSCAPE EXPERIENCE</span><span>SPORTS ARENA PROJECT</span></div>
+    </section>
+
+    <section class="screen setup-screen" id="screen-setup" aria-hidden="true">
+      <div class="setup-panel">
+        <div class="screen-heading">
+          <div><div class="eyebrow"><span class="eyebrow-line"></span> MATCH CONFIGURATION</div><h2>CHOOSE YOUR <em>GAME.</em></h2></div>
+          <button class="icon-button close-button" id="setup-back" aria-label="Back">×</button>
+        </div>
+        <div class="setup-grid">
+          <div class="setup-section">
+            <span class="section-label">01 / MATCH TYPE</span>
+            <div class="choice-grid">
+              <button class="choice-card selected" data-mode="singles"><span class="choice-icon">◉</span><b>SINGLES</b><small>1 VS 1</small></button>
+              <button class="choice-card" data-mode="doubles"><span class="choice-icon">◎</span><b>DOUBLES</b><small>2 VS 2</small></button>
+            </div>
+          </div>
+          <div class="setup-section">
+            <span class="section-label">02 / CPU LEVEL</span>
+            <div class="level-row">
+              <button class="level-button" data-level="easy">EASY</button>
+              <button class="level-button selected" data-level="normal">NORMAL</button>
+              <button class="level-button" data-level="hard">HARD</button>
+            </div>
+          </div>
+          <div class="setup-note"><span class="note-icon">✦</span><span><b>READY WHEN YOU ARE</b><small>この画面はゲーム基盤の初期バージョンです。操作・試合機能は順次実装します。</small></span></div>
+          <button class="button button-primary start-match" id="match-start"><span>ENTER THE COURT</span><b>↗</b></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen settings-screen" id="screen-settings" aria-hidden="true">
+      <div class="settings-panel">
+        <div class="screen-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> PREFERENCES</div><h2>GAME <em>SETTINGS.</em></h2></div><button class="icon-button close-button" id="settings-close" aria-label="Close">×</button></div>
+        <label class="setting-row"><span><b>Camera motion</b><small>カメラの追従演出</small></span><input type="checkbox" id="camera-motion" checked></label>
+        <label class="setting-row"><span><b>Sound effects</b><small>効果音（実装準備中）</small></span><input type="checkbox" id="sound-toggle" checked></label>
+        <div class="settings-foot">REAL TENNIS ARENA <span>WEB PROTOTYPE</span></div>
+      </div>
+    </section>
+
+    <section class="screen gameplay-screen" id="screen-gameplay" aria-hidden="true">
+      <div class="game-hud-top">
+        <button class="hud-back" id="game-exit">‹ <span>MENU</span></button>
+        <div class="score-panel"><div class="score-player"><small>YOU</small><b id="score-you">0</b></div><div class="score-divider"><span>GAME</span><i>—</i></div><div class="score-player opponent"><small>CPU</small><b id="score-cpu">0</b></div></div>
+        <div class="match-tag"><i></i><span id="match-mode-label">SINGLES</span></div>
+      </div>
+      <div class="game-hint" id="game-hint">移動：WASD / 矢印キー　・　打球：SPACE</div>
+      <div class="touch-controls joycon-controls" id="touch-controls" aria-label="スマホ用ジョイスティック操作">
+        <div class="joycon-side joystick-side"><span class="joycon-label">MOVE</span><div class="move-pad" id="move-pad" aria-label="移動スティック"><div class="move-knob" id="move-knob"></div></div></div>
+        <div class="joycon-side shot-controls-side"><span class="joycon-label">SHOT</span><div class="hit-buttons"><button id="lob-button" class="small-hit-button joycon-button joycon-b" aria-label="ロブ">B<span>LOB</span></button><button id="hit-button" class="hit-button joycon-button joycon-a" aria-label="打つ">A<span>打つ</span></button></div></div>
+      </div>
+      <div class="game-bottom"><span>POINT <b id="point-state">READY</b></span><span>REAL TENNIS ARENA / TRAINING BUILD</span></div>
+    </section>
+
+    <div class="rotate-notice" id="rotate-notice"><div class="rotate-icon">▱</div><b>TURN YOUR DEVICE</b><span>横向きにするとプレイできます</span></div>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="loading-screen" id="loading-screen"><div class="loading-logo">R<span>·</span>T</div><div class="loading-track"><i></i></div><span>PREPARING THE ARENA</span></div>
+  </main>
+  <script src="js/scene.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
