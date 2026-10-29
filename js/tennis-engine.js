@@ -1,6 +1,6 @@
 /* Tennis match controller. The 3D scene owns simulation; this file owns controls and HUD. */
 (()=>{'use strict';
-let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0',lastStatus='',serveChargeStart=0,serveCharging=false;
+let frame=null,stage=null,active=false,keys=new Set(),held=null,scoreText='0 - 0',lastStatus='',serveChargeStart=0,serveCharging=false,statusTimer=0;
 const $=id=>document.getElementById(id);
 function post(type,data={}){try{frame?.contentWindow?.postMessage({type:'tennis-engine',action:type,...data},location.origin)}catch(_){}}
 function button(label,action,cls=''){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.action=action;b.className=cls;return b}
@@ -44,10 +44,12 @@ function makeUI(){
 }
 
 function start(iframe,container){frame=iframe;stage=container;active=true;makeUI();frame.addEventListener('load',()=>post('start'),{once:true});if(frame.contentDocument?.readyState==='complete')post('start');}
-function stop(){active=false;keys.clear();post('stop');$('hud')&&($('hud').hidden=true);$('touch')&&($('touch').hidden=true);$('mb')&&($('mb').hidden=true);$('pauseMenu')&&($('pauseMenu').hidden=true);frame=null;stage=null}
-function setStatus(t){
+function stop(){active=false;keys.clear();clearTimeout(statusTimer);statusTimer=0;lastStatus='';post('stop');$('hud')&&($('hud').hidden=true);$('touch')&&($('touch').hidden=true);$('mb')&&($('mb').hidden=true);$('pauseMenu')&&($('pauseMenu').hidden=true);frame=null;stage=null}
+function setStatus(t,options={}){
+ clearTimeout(statusTimer);statusTimer=0;
  lastStatus=String(t||'');
- const e=$('msg');if(e)e.textContent=lastStatus;
+ const e=$('msg');if(e){e.textContent=lastStatus;e.hidden=!lastStatus;}
+ if(lastStatus&&Number.isFinite(options.duration)&&options.duration>0){const expected=lastStatus;statusTimer=setTimeout(()=>{if(lastStatus===expected){lastStatus='';const msg=$('msg');if(msg)msg.textContent='';}},options.duration);}
  const bs=$('bs'),bp=$('bp'),bd=$('bd'),serving=lastStatus==='サーブしてください';
  if(bs)bs.textContent=serving?'サーブ':'スイング';
  if(bp)bp.hidden=serving;if(bd)bd.hidden=serving;
@@ -61,9 +63,9 @@ function updateScore(d){
  const safe=n=>String(n).replace(/[<>&"]/g,'');
  const player=(n,p)=>'<div class="sr playerPoint"><b>'+safe(n)+'</b><u>'+p+'</u></div>';
  score.innerHTML='<div class="sr summary compactSummary"><b>SET '+sets[0]+' - '+sets[1]+'</b><i>GAME '+games[0]+' - '+games[1]+'</i></div>'+player(localStorage.getItem('rs-nick')||'あなた',point(pts[0],pts[1],0))+player('CPU',point(pts[0],pts[1],1));
- scoreText=d.score||scoreText;setStatus(d.status||'ラリー中');
+ scoreText=d.score||scoreText;setStatus(d.status||'ラリー中',{duration:d.statusDuration});
 }
-window.addEventListener('message',e=>{if(!active||e.source!==frame?.contentWindow||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;if(d.action==='score')updateScore(d);if(d.action==='status')setStatus(d.text||'');if(d.action==='quit'){stop();}});
+window.addEventListener('message',e=>{if(!active||e.source!==frame?.contentWindow||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;if(d.action==='score')updateScore(d);if(d.action==='status')setStatus(d.text||'',{duration:d.duration});if(d.action==='quit'){stop();}});
 window.addEventListener('keydown',e=>{if(!active)return;const map={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};const k=map[e.key];if(k){keys.add(k);post('move',{keys:[...keys]});e.preventDefault()}if(e.code==='Space'){post('hit',{kind:e.shiftKey?'power':'hit'});e.preventDefault()}if(e.key==='Escape'){const p=$('pauseMenu');if(p){p.hidden=!p.hidden;post(p.hidden?'resume':'pause')}else{stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'))}}});
 window.addEventListener('keyup',e=>{if(!active)return;const map={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};const k=map[e.key];if(k){keys.delete(k);post('move',{keys:[...keys]})}});
 window.TennisEngine={start,stop};
