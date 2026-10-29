@@ -236,6 +236,8 @@ const slides=[['#0d3b8a','#ffffff','NOVA','MOTORS','Drive the Future'],['#c0392b
 let sl=-1;function drawSlide(i){const[b,f,a,c,t]=slides[i],g=spX,gr=g.createLinearGradient(0,0,512,256);gr.addColorStop(0,b);gr.addColorStop(1,'#000');g.fillStyle=gr;g.fillRect(0,0,512,256);g.fillStyle=f;g.font='bold 30px sans-serif';g.fillText('SPONSOR',20,38);g.font='bold 92px sans-serif';g.fillText(a,20,140);g.font='bold 56px sans-serif';g.fillText(c,20,198);g.font='24px sans-serif';g.fillText(t,20,240);g.beginPath();g.arc(440,70,34,0,TAU);g.fill();g.fillStyle=b;g.beginPath();g.arc(440,70,16,0,TAU);g.fill();spT.needsUpdate=true}
 tod=12;
 const requestedCourt=new URLSearchParams(location.search).get('sport');
+// テニス中のメッセージは親画面のHUDに表示するため、iframe内の重複表示を隠す。
+if(requestedCourt==='tennis'){const centerMessage=document.getElementById('msg');if(centerMessage)centerMessage.style.display='none'}
 const courtKey=({badminton:'badm',badm:'badm',tennis:'tennis',volley:'volley',tt:'tt'})[requestedCourt]||'badm';
 setCourt(courtKey);setNight(false);
 
