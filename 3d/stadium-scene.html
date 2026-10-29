@@ -331,13 +331,13 @@ const tennisGame=(()=> {
   const speed=7.8,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0),moveLen=Math.hypot(dx,dz)||1,pu=player.userData,accel=1-Math.exp(-22*dt);
   const oldPX=player.position.x,oldPZ=player.position.z;
   pu.vx+=(dx/moveLen*speed-pu.vx)*accel;pu.vz+=(dz/moveLen*speed-pu.vz)*accel;
-  const servingPosition=serveReady||serveInProgress;player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,servingPosition?12.0:0.8,14.2);
+  const servingPosition=serveReady;player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,servingPosition?12.0:0.8,14.2);
   player.position.z=THREE.MathUtils.clamp(player.position.z+pu.vz*dt,-5.0,5.0);
   const playerMoving=Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.002;
   if(playerMoving)player.rotation.y=Math.atan2(player.position.x-oldPX,player.position.z-oldPZ);
   animatePlayer(player,dt,playerMoving);
   if(serveReady){ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(12.15,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
-  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;const tossT=Math.min(elapsed,1.35);ball.position.set(12.15+tossT*.12,1.72+Math.sin(Math.min(tossT/1.35,1)*Math.PI*.5)*.95,player.position.z-.12+tossT*.04);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=1.55){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveDX=-10.8,serveTZ=serveTargetZ,serveScale=THREE.MathUtils.lerp(.9,1.55,servePower),serveSolved=solveShot({x:ball.position.x,y:ball.position.y,z:ball.position.z},serveDX,serveTZ,'flat',serveScale);ballV.set(serveSolved.v.x,serveSolved.v.y,serveSolved.v.z);ballSpin.set(serveSolved.w.x,serveSolved.w.y,serveSolved.w.z);say('サーブ！',650)}return;}
+  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;const tossT=Math.min(elapsed,.42);const tossProgress=Math.min(tossT/.42,1);ball.position.set(12.15+tossT*.18,1.72+Math.sin(tossProgress*Math.PI*.5)*.95,player.position.z-.12+tossT*.08);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=.58){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveDX=-10.8,serveTZ=serveTargetZ,serveScale=THREE.MathUtils.lerp(.9,1.55,servePower),serveSolved=solveShot({x:ball.position.x,y:ball.position.y,z:ball.position.z},serveDX,serveTZ,'flat',serveScale);ballV.set(serveSolved.v.x,serveSolved.v.y,serveSolved.v.z);ballSpin.set(serveSolved.w.x,serveSolved.w.y,serveSolved.w.z);say('サーブ！',650)}return;}
   const oldOX=opponent.position.x,oldOZ=opponent.position.z;
   const destLateral=THREE.MathUtils.clamp(ball.position.z,-5.0,5.0);
   opponent.position.z=THREE.MathUtils.clamp(opponent.position.z+(destLateral-opponent.position.z)*Math.min(1,dt*3.2),-5.0,5.0);
