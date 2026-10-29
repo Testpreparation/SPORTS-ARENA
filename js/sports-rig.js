@@ -213,7 +213,7 @@ function pose(c,a,st){const J=c.J,co=Math.cos;J.hips.rotation.set(0,a[2],0);let 
  if(st===0)b.position.set(a[41],a[42],a[43]);
  else if(st<3){c.root.updateMatrixWorld(true);const w=J['wrist'+(st===1?'L':'R')],q=WQ(w);b.position.copy(W3(w)).addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(q),c.ho[0]).addScaledVector(new THREE.Vector3(0,-1,0).applyQuaternion(q),c.ho[1])}}
 let mode='tpose',t0=0;
-function play(c,now){const M=mode==='tpose'?TP[c.sp||'none']:MO[mode];if(!M)return;const r=sample(M,now-t0);pose(c,r.a,r.s)}
+function play(c,now,motion){if(motion&&c._motion!==motion){c._motion=motion;c._motionStart=now;}const active=c._motion||mode,start=c._motionStart===undefined?t0:c._motionStart,M=active==='tpose'?TP[c.sp||'none']:MO[active];if(!M)return;const r=sample(M,now-start);pose(c,r.a,r.s)}
 const MN={badm:[['ready','構え'],['smash','スマッシュ'],['net','ネットショット']],tennis:[['ready','構え'],['fh','フォアハンド'],['serve','サーブ']],volley:[['ready','構え'],['recv','レシーブ'],['set','トス'],['spike','スパイク'],['serve','サーブ']],tt:[['ready','構え'],['drive','ドライブ'],['serve','サーブ']]};
 window.SportsRig=Object.freeze({makeChar,equip,play,pose,MO,TP,badRacket,tennisRacket,paddle,volleyball,tennisBall,ttBall,shuttle,setMotion(name){mode=name;t0=performance.now()/1000;},setEquipment(c,k){equip(c,k);mode=k+':ready';t0=performance.now()/1000;}});
 
