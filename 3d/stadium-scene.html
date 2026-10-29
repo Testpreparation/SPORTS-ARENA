@@ -277,9 +277,9 @@ const tennisGame=(()=> {
   const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
   emitScore(text);say(text);if(setWon){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who},location.origin);return}setTimeout(()=>{if(!live)return;resetBall()},1200);
  }
- function launch(kind,who,aim={x:0,y:0}){
+ function launch(kind,who,aim={x:0,y:0},power=.65){
   if(!live||pointLock)return;
-  if(who===0&&serveReady){serveReady=false;lastHitter=0;player.userData.swingTime=.32;ball.position.set(10.8,1.65,player.position.z);const tx=THREE.MathUtils.clamp(opponent.position.z+(Math.random()-.5)*2.5,-4.5,4.5);const travel=0.82;ballV.set((-10.8-ball.position.x)/travel,((1.0-ball.position.y)+4.905*travel*travel)/travel,(tx-ball.position.z)/travel);bounceCount=0;say('サーブ！');return}
+  if(who===0&&serveReady){serveReady=false;lastHitter=0;player.userData.swingTime=.32;ball.position.set(10.8,1.65,player.position.z);const tx=THREE.MathUtils.clamp(opponent.position.z+(Math.random()-.5)*2.5,-4.5,4.5);const travel=THREE.MathUtils.lerp(1.08,.48,THREE.MathUtils.clamp(power,.25,1));ballV.set((-10.8-ball.position.x)/travel,((1.0-ball.position.y)+4.905*travel*travel)/travel,(tx-ball.position.z)/travel);bounceCount=0;say('サーブ！');return}
   const p=who===0?player:opponent,dx=ball.position.z-p.position.z,dz=ball.position.x-p.position.x;
   if(Math.abs(dx)>2.5||Math.abs(dz)>2.3||ball.position.y>3.7){if(who===0)say('ボールに近づいてタイミングよく打ってください');return}
   lastHitter=who;bounceCount=0;p.userData.swingTime=.32;
@@ -297,7 +297,7 @@ const tennisGame=(()=> {
   resetBall();say('サーブしてください');}catch(err){live=false;console.error('Tennis engine start failed:',err);parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+err.message},location.origin)}}
  function stop(){live=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
- function hit(kind,aim){launch(kind||'hit',0,aim||{x:0,y:0})}
+ function hit(kind,aim,power){launch(kind||'hit',0,aim||{x:0,y:0},power===undefined?.65:power)}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
   const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0);
   const oldPX=player.position.x,oldPZ=player.position.z;
@@ -328,7 +328,7 @@ const tennisGame=(()=> {
   if(ball.position.y<-.2){point(lastHitter===0?1:0,'ミス');return}
  }
  function onMessage(e){if(e.source!==parent||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;
-  if(d.action==='start'){paused=false;start()}if(d.action==='stop')stop();if(d.action==='pause')paused=true;if(d.action==='resume')paused=false;if(d.action==='move')move(d.keys);if(d.action==='hit'&&!paused)hit(d.kind,d.aim)}
+  if(d.action==='start'){paused=false;start()}if(d.action==='stop')stop();if(d.action==='pause')paused=true;if(d.action==='resume')paused=false;if(d.action==='move')move(d.keys);if(d.action==='hit'&&!paused)hit(d.kind,d.aim,d.power)}
  addEventListener('message',onMessage);const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};addEventListener('keydown',ev=>{if(!live)return;const k=keyMap[ev.key];if(k){keys.add(k);ev.preventDefault()}if(ev.code==='Space'){launch(ev.shiftKey?'power':'hit',0);ev.preventDefault()}});addEventListener('keyup',ev=>{const k=keyMap[ev.key];if(k)keys.delete(k)});let prev=performance.now();function loop(){requestAnimationFrame(loop);const n=performance.now();if(live){update();prev=n}}loop();
  return{start,stop};
 })();
