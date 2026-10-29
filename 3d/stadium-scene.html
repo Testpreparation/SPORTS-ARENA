@@ -238,7 +238,7 @@ setCourt(courtKey);setNight(false);
 
 /* ---------- Tennis match engine (isolated from the stadium renderer) ---------- */
 const tennisGame=(()=> {
- let live=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,mode='cpu';
+ let live=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,mode='cpu',matchOver=false;
  let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
  const root=new THREE.Group();G.tennis.add(root);
  const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
@@ -261,13 +261,13 @@ const tennisGame=(()=> {
   g.position.set(x,0,z);root.add(g);return g;
  }
  function say(text){status=text;parent.postMessage({type:'tennis-engine',action:'status',text},location.origin)}
- function scoreLabel(){const p=['0','15','30','40','AD'];return p[Math.min(points[0],4)]+' - '+p[Math.min(points[1],4)]+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
+ function scoreLabel(){const p=['0','15','30','40'];let a,b;if(points[0]>=3&&points[1]>=3){a=points[0]===points[1]?'40':points[0]>points[1]?'AD':'40';b=points[0]===points[1]?'40':points[1]>points[0]?'AD':'40'}else{a=p[Math.min(points[0],3)];b=p[Math.min(points[1],3)]}return a+' - '+b+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
  function emitScore(text=status){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),status:text},location.origin)}
  function resetBall(){ball.position.set(player.position.x*.35,1.25,4.25);ballV.set(0,0,0);bounceCount=0;serveReady=true;pointLock=false;lastHitter=0;say('サーブしてください');emitScore()}
- function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false;
-  if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];}}
-  const text=(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
-  emitScore(text);say(text);setTimeout(()=>{if(!live)return;resetBall()},1200);
+ function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false,setWon=false;
+  if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];if(sets[who]>=1){setWon=true;matchOver=true;live=false;}}}
+  const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
+  emitScore(text);say(text);if(setWon){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who},location.origin);return}setTimeout(()=>{if(!live)return;resetBall()},1200);
  }
  function launch(kind,who){
   if(!live||pointLock)return;
@@ -282,7 +282,7 @@ const tennisGame=(()=> {
   const speed=kind==='power'?20:kind==='drop'?9:kind==='slice'?12:15;
   ballV.copy(delta.multiplyScalar(speed));say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
  }
- function start(){if(live)return;live=true;G.tennis.visible=true;setCourt('tennis');cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
+ function start(){if(live)return;matchOver=false;live=true;G.tennis.visible=true;setCourt('tennis');cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();say('サーブしてください');}
@@ -308,7 +308,7 @@ const tennisGame=(()=> {
  }
  function onMessage(e){if(e.source!==parent||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;
   if(d.action==='start')start();if(d.action==='stop')stop();if(d.action==='move')move(d.keys);if(d.action==='hit')hit(d.kind)}
- addEventListener('message',onMessage);let prev=performance.now();function loop(){requestAnimationFrame(loop);const n=performance.now();if(live){update();prev=n}}loop();
+ addEventListener('message',onMessage);const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};addEventListener('keydown',ev=>{if(!live)return;const k=keyMap[ev.key];if(k){keys.add(k);ev.preventDefault()}if(ev.code==='Space'){launch(ev.shiftKey?'power':'hit',0);ev.preventDefault()}});addEventListener('keyup',ev=>{const k=keyMap[ev.key];if(k)keys.delete(k)});let prev=performance.now();function loop(){requestAnimationFrame(loop);const n=performance.now();if(live){update();prev=n}}loop();
  return{start,stop};
 })();
 
