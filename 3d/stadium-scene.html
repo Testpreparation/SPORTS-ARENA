@@ -241,8 +241,23 @@ const tennisGame=(()=> {
  let live=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,mode='cpu',matchOver=false;
  let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
  const root=new THREE.Group();G.tennis.add(root);
- const matchFill=new THREE.HemisphereLight(0xffffff,0x8797aa,1.35);matchFill.visible=false;scene.add(matchFill);
- const matchKey=new THREE.DirectionalLight(0xffffff,1.65);matchKey.position.set(-5,18,10);matchKey.visible=false;scene.add(matchKey);
+ // 試合中は追加の仮設ライトではなく、スタジアムに配置済みの照明を使用する
+ const matchFill=new THREE.HemisphereLight(0xffffff,0x8797aa,0);matchFill.visible=false;scene.add(matchFill);
+ const matchKey=new THREE.DirectionalLight(0xffffff,0);matchKey.position.set(-5,18,10);matchKey.visible=false;scene.add(matchKey);
+ let savedMatchLights=null;
+ function setStadiumMatchLights(enabled){
+  if(enabled){
+   if(!savedMatchLights)savedMatchLights={spots:spots.map(s=>s.intensity),panels:panels.map(p=>p.material.emissiveIntensity),exposure:renderer.toneMappingExposure};
+   spots.forEach(s=>{s.intensity=4.2;s.visible=true});
+   panels.forEach(p=>{p.material.emissiveIntensity=4.2});
+   renderer.toneMappingExposure=1.12;
+  }else if(savedMatchLights){
+   spots.forEach((s,i)=>s.intensity=savedMatchLights.spots[i]);
+   panels.forEach((p,i)=>{p.material.emissiveIntensity=savedMatchLights.panels[i]});
+   renderer.toneMappingExposure=savedMatchLights.exposure;
+   savedMatchLights=null;
+  }
+ }
  const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
  const skin=mat(0xd9a47d),shirt=mat(0x2475d8),shorts=mat(0x17283d),shoe=mat(0xf4f5f7),hair=mat(0x34251f),opShirt=mat(0xd94c45),ballMat=mat(0xd9ef57,.4);
  const capsule=(radius,length,material)=>{const g=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,length,10),material);body.position.y=0;g.add(body);const a=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),material);a.position.y=length/2;g.add(a);const b=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),material);b.position.y=-length/2;g.add(b);return g;};
@@ -285,11 +300,11 @@ const tennisGame=(()=> {
   const speed=kind==='power'?20:kind==='drop'?9:kind==='slice'?12:15;
   ballV.copy(delta.multiplyScalar(speed));say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
  }
- function start(){if(live)return;try{matchOver=false;live=true;matchFill.visible=true;matchKey.visible=true;renderer.toneMappingExposure=1.25;G.tennis.visible=true;setCourt('tennis');ctl.enabled=false;cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);cam.lookAt(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
+ function start(){if(live)return;try{matchOver=false;live=true;setStadiumMatchLights(true);matchFill.visible=false;matchKey.visible=false;G.tennis.visible=true;setCourt('tennis');ctl.enabled=false;cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);cam.lookAt(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();say('サーブしてください');}catch(err){live=false;console.error('Tennis engine start failed:',err);parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+err.message},location.origin)}}
- function stop(){live=false;matchFill.visible=false;matchKey.visible=false;renderer.toneMappingExposure=1;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
+ function stop(){live=false;matchFill.visible=false;matchKey.visible=false;setStadiumMatchLights(false);ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim){launch(kind||'hit',0,aim||{x:0,y:0})}
  function update(){if(!live)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
