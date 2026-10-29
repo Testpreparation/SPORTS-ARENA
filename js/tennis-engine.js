@@ -80,7 +80,7 @@ function updateScore(d){
  const safe=n=>String(n).replace(/[<>&"]/g,'');
  const player=(n,p)=>'<div class="sr playerPoint"><b>'+safe(n)+'</b><u>'+p+'</u></div>';
  score.innerHTML='<div class="sr summary compactSummary"><b>SET '+sets[0]+' - '+sets[1]+'</b><i>GAME '+games[0]+' - '+games[1]+'</i></div>'+player(localStorage.getItem('rs-nick')||'あなた',point(pts[0],pts[1],0))+player('CPU',point(pts[0],pts[1],1));
- scoreText=d.score||scoreText;setStatus(d.status||'ラリー中',{duration:d.statusDuration});if(d.pointEvent)showPointScore(d);
+ scoreText=d.score||scoreText;if(d.status)setStatus(d.status,{duration:d.statusDuration});if(d.pointEvent)showPointScore(d);
 }
 window.addEventListener('message',e=>{if(!active||e.source!==frame?.contentWindow||e.origin!==location.origin)return;const d=e.data;if(!d||d.type!=='tennis-engine')return;if(d.action==='score')updateScore(d);if(d.action==='status')setStatus(d.text||'',{duration:d.duration});if(d.action==='quit'){stop();}});
 window.addEventListener('keydown',e=>{if(!active)return;const map={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};const k=map[e.key];if(k){keys.add(k);post('move',{keys:[...keys]});e.preventDefault()}if(e.code==='Space'){post('hit',{kind:e.shiftKey?'power':'hit'});e.preventDefault()}if(e.key==='Escape'){const p=$('pauseMenu');if(p){p.hidden=!p.hidden;post(p.hidden?'resume':'pause')}else{stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'))}}});

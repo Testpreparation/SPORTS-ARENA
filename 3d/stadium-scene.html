@@ -326,7 +326,7 @@ const tennisGame=(()=> {
   if(!live||pointLock)return;
   if(who===0&&serveReady){serveReady=false;serveInProgress=true;serveStartedAt=performance.now();servePower=THREE.MathUtils.clamp(power,.25,1);serveTargetZ=(serveSide%2===0?-1:1)*(2.05+THREE.MathUtils.clamp((aim.x||0)*.35,-.25,.25));lastHitter=0;currentServe=true;player.userData.serveMotion=true;player.userData.swingTime=0;ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(player.position.x,1.55,player.position.z-.12);ball.visible=true;if(ball.userData.shadow)ball.userData.shadow.visible=true;bounceCount=0;say('サーブ：ボタン／Space長押しで威力調整');return}
   const p=who===0?player:opponent,dx=ball.position.z-p.position.z,dz=ball.position.x-p.position.x;
-  if(Math.abs(dx)>2.0||Math.abs(dz)>1.8||ball.position.y>3.4){if(who===0)say('ボールに近づいてタイミングよく打ってください');return}
+  if(Math.abs(dx)>2.0||Math.abs(dz)>1.8||ball.position.y>3.4){if(who===0);return}
   lastHitter=who;bounceCount=0;p.userData.swingTime=.32;
   let targetLateral=(who===0?opponent:player).position.z+(Math.random()-.5)*(kind==='drop'?1.4:4.6)+(aim.x||0)*3.5;
   targetLateral=THREE.MathUtils.clamp(targetLateral,-4.5,4.5);
@@ -334,7 +334,7 @@ const tennisGame=(()=> {
   const shotType=kind==='drop'?'lob':kind==='slice'?'slice':kind==='power'?'flat':'top';
   const solved=solveShot({x:ball.position.x,y:ball.position.y,z:ball.position.z},targetLongitudinal,targetLateral,shotType);
   ballV.set(solved.v.x,solved.v.y,solved.v.z);ballSpin.set(solved.w.x,solved.w.y,solved.w.z);
-  say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！',900);
+  ;
  }
  function start(){if(live)return;try{root.clear();player=opponent=ball=null;matchOver=false;points=[0,0];games=[0,0];sets=[0,0];tiebreak=false;serveSide=0;paused=false;setCourt('tennis');scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';matchFill.intensity=.7;matchKey.intensity=1.2;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;ctl.enabled=false;tp=null;tt=null;cam.position.set(17,1.9,0);ctl.target.set(0,0.65,0);cam.lookAt(0,0.65,0);ctl.update();player=makePlayer(12.6,0,false);opponent=makePlayer(-10.8,0,true);if(player.userData.rig.ball)player.userData.rig.ball.visible=false;if(opponent.userData.rig.ball)opponent.userData.rig.ball.visible=false;live=true;
   ball=new THREE.Mesh(new THREE.SphereGeometry(PHYS_R,16,12),ballMat);ball.name='tennis-ball-single';ball.castShadow=true;ball.frustumCulled=false;root.add(ball);
@@ -355,7 +355,7 @@ const tennisGame=(()=> {
   if(playerMoving){const target=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.atan2(player.position.x-oldPX,player.position.z-oldPZ));player.quaternion.slerp(target,1-Math.exp(-10*dt));}
   animatePlayer(player,dt,playerMoving);
   if(serveReady){ballV.set(0,0,0);ballSpin.set(0,0,0);ball.visible=false;ball.position.set(player.position.x,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow){idleShadow.visible=false;idleShadow.position.set(ball.position.x,.025,ball.position.z)}return;}
-  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;const tossT=Math.min(elapsed,.58);ball.position.set(player.position.x+tossT*.08,1.55+2.05*tossT-1.75*tossT*tossT,player.position.z-.12+tossT*.04);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(THREE.MathUtils.clamp(.75-tossT*.22,.55,.75))}if(elapsed>=.58){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveX=-8.85,serveZ=serveTargetZ,serveTime=THREE.MathUtils.lerp(.76,.86,servePower),dx=serveX-ball.position.x,dz=serveZ-ball.position.z,serveVx=dx/serveTime,serveVz=dz/serveTime,serveVy=(PHYS_R-ball.position.y+.5*PHYS_G*serveTime*serveTime)/serveTime;ballV.set(serveVx,serveVy,serveVz);ballSpin.set(0,0,0);say('サーブ！',650)}return;}
+  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;const tossT=Math.min(elapsed,.58);ball.position.set(player.position.x+tossT*.08,1.55+2.05*tossT-1.75*tossT*tossT,player.position.z-.12+tossT*.04);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(THREE.MathUtils.clamp(.75-tossT*.22,.55,.75))}if(elapsed>=.58){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveX=-8.85,serveZ=serveTargetZ,serveTime=THREE.MathUtils.lerp(.76,.86,servePower),dx=serveX-ball.position.x,dz=serveZ-ball.position.z,serveVx=dx/serveTime,serveVz=dz/serveTime,serveVy=(PHYS_R-ball.position.y+.5*PHYS_G*serveTime*serveTime)/serveTime;ballV.set(serveVx,serveVy,serveVz);ballSpin.set(0,0,0);}return;}
   const oldOX=opponent.position.x,oldOZ=opponent.position.z;
   const predictedZ=ball.position.z+ballV.z*Math.max(0,ball.position.y/Math.max(.1,-ballV.y+2));const destLateral=THREE.MathUtils.clamp(predictedZ,-COURT.singlesHalfWidth+.3,COURT.singlesHalfWidth-.3);
   opponent.position.z=THREE.MathUtils.clamp(opponent.position.z+(destLateral-opponent.position.z)*Math.min(1,dt*3.2),-COURT.singlesHalfWidth+.2,COURT.singlesHalfWidth-.2);
