@@ -324,7 +324,7 @@ const tennisGame=(()=> {
  }
  function launch(kind,who,aim={x:0,y:0},power=.65){
   if(!live||pointLock)return;
-  if(who===0&&serveReady){serveReady=false;serveInProgress=true;serveStartedAt=performance.now();servePower=THREE.MathUtils.clamp(power,.25,1);serveTargetZ=(serveSide%2===0?-1:1)*(2.05+THREE.MathUtils.clamp((aim.x||0)*.35,-.25,.25));lastHitter=0;currentServe=true;player.userData.serveMotion=true;player.userData.swingTime=0;ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(player.position.x,1.55,player.position.z-.12);ball.visible=true;if(ball.userData.shadow)ball.userData.shadow.visible=true;bounceCount=0;say('サーブの構え…',700);return}
+  if(who===0&&serveReady){serveReady=false;serveInProgress=true;serveStartedAt=performance.now();servePower=THREE.MathUtils.clamp(power,.25,1);serveTargetZ=(serveSide%2===0?-1:1)*(2.05+THREE.MathUtils.clamp((aim.x||0)*.35,-.25,.25));lastHitter=0;currentServe=true;player.userData.serveMotion=true;player.userData.swingTime=0;ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(player.position.x,1.55,player.position.z-.12);ball.visible=true;if(ball.userData.shadow)ball.userData.shadow.visible=true;bounceCount=0;say('サーブ：ボタン／Space長押しで威力調整');return}
   const p=who===0?player:opponent,dx=ball.position.z-p.position.z,dz=ball.position.x-p.position.x;
   if(Math.abs(dx)>2.0||Math.abs(dz)>1.8||ball.position.y>3.4){if(who===0)say('ボールに近づいてタイミングよく打ってください');return}
   lastHitter=who;bounceCount=0;p.userData.swingTime=.32;
