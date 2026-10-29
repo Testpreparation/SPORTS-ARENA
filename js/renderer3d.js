@@ -5,7 +5,7 @@
 (() => {
   'use strict';
   const API_KEY = 'RacketArena3D';
-  const state = { renderer: null, scene: null, camera: null, root: null, frame: 0, resize: null, active: false };
+  const state = { renderer: null, scene: null, camera: null, root: null, frame: 0, resize: null, active: false, characters: [] };
 
   function getStage() {
     let stage = document.getElementById('game3dStage');
@@ -86,6 +86,7 @@
   function animate() {
     if (!state.active || !state.renderer) return;
     state.frame = requestAnimationFrame(animate);
+    if (window.SportsRig) state.characters.forEach(c => window.SportsRig.play(c, performance.now() / 1000));
     state.renderer.render(state.scene, state.camera);
   }
 
@@ -121,6 +122,7 @@
       state.renderer.domElement.remove();
     }
     state.renderer = state.scene = state.camera = state.root = null;
+    state.characters = [];
     state.frame = 0;
     state.resize = null;
   }
@@ -225,6 +227,24 @@
     const netMat=new T.MeshStandardMaterial({color:0xdce4eb,roughness:.95,wireframe:true});
     const net=new T.Mesh(new T.PlaneGeometry(w,nh,Math.max(12,Math.round(w*8)),Math.max(4,Math.round(nh*12))),netMat);
     net.position.set(0,.07+nh/2,netZ); arena.add(net);
+    // Reuse the uploaded v4 procedural character rig; keep it separate from UI/room logic.
+    state.characters = [];
+    if (window.SportsRig) {
+      const rig = window.SportsRig;
+      const kind = sport === 'badminton' ? 'badm' : sport === 'tennis' ? 'tennis' : sport === 'volleyball' ? 'volley' : 'tt';
+      const motion = kind + ':ready';
+      rig.setMotion(motion);
+      [-1, 1].forEach((side) => {
+        const character = rig.makeChar();
+        rig.equip(character, kind);
+        character.root.scale.setScalar(0.92);
+        character.root.position.set(0, 0.08, side * Math.min(l * 0.29, 2.8));
+        character.root.rotation.y = side > 0 ? Math.PI : 0;
+        state.root.add(character.root);
+        state.characters.push(character);
+      });
+    }
+
     // Camera frames the full court with stadium visible
     setCamera({x:0,y:Math.max(5.4,l*.42),z:Math.max(9,l*.66)},{x:0,y:.7,z:0});
     state.scene.background = new T.Color(0x101a28);
