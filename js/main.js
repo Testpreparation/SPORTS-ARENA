@@ -39,7 +39,7 @@ function openArenaPreview(){
   if(!back){
     back=document.createElement('button');back.id='arena3dBack';back.type='button';back.textContent='← メニューへ戻る';
     Object.assign(back.style,{position:'fixed',top:'max(12px,env(safe-area-inset-top))',left:'max(12px,env(safe-area-inset-left))',zIndex:'10000',padding:'11px 16px',border:'1px solid rgba(255,255,255,.35)',borderRadius:'12px',background:'rgba(12,22,34,.88)',color:'#fff',fontWeight:'800',fontSize:'14px'});
-    back.addEventListener('click',()=>{stage.hidden=true;stage.innerHTML='';stage.style.display='none';hide('arena3dBack');show('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
+    back.addEventListener('click',()=>{stage.hidden=true;stage.innerHTML='';stage.style.display='none';hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
     document.body.appendChild(back);
   }
   show('arena3dBack');
