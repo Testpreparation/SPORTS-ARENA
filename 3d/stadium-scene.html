@@ -250,8 +250,8 @@ const tennisGame=(()=> {
  const matchFill=new THREE.HemisphereLight(0xffffff,0x8797aa,0);matchFill.visible=false;scene.add(matchFill);
  const matchKey=new THREE.DirectionalLight(0xffffff,0);matchKey.position.set(-5,18,10);matchKey.visible=false;scene.add(matchKey);
  const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
- // テニスボール物理。現在のシーンは x=コート長手、z=横方向なのでネット面は x=0。
- const PHYS_R=.105,PHYS_G=9.81,PHYS_DRAG=.02,PHYS_MAGNUS=8e-4,PHYS_EN=.75,PHYS_MU=.55;
+ // 物理演算は提供されたテストゲームの式を採用。現行コートは x=長手方向、z=横方向なのでネット軸のみ変換。
+ const PHYS_R=.0335,PHYS_G=9.81,PHYS_DRAG=.02,PHYS_MAGNUS=8e-4,PHYS_EN=.75,PHYS_MU=.55;
  const vCross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
  const netHeight=z=>.914+Math.min(1,Math.abs(z)/6.4)*.156;
  function physicsStep(b,dt,ignoreNet=false){
@@ -259,7 +259,7 @@ const tennisGame=(()=> {
   v.x+=(-k*v.x+PHYS_MAGNUS*m.x)*dt;v.y+=(-PHYS_G-k*v.y+PHYS_MAGNUS*m.y)*dt;v.z+=(-k*v.z+PHYS_MAGNUS*m.z)*dt;
   const x0=p.x;p.x+=v.x*dt;p.y+=v.y*dt;p.z+=v.z*dt;
   const damp=1-.1*dt;w.x*=damp;w.y*=damp;w.z*=damp;
-  if(!ignoreNet&&x0*p.x<0){const q=x0/(x0-p.x),y=p.y-v.y*dt*(1-q),z=p.z-v.z*dt*(1-q);if(y>0&&y<netHeight(z)+PHYS_R){v.x*=-.12;v.y*=.3;v.z*=.4;w.x*=.3;w.y*=.3;w.z*=.3;p.x=x0>0?.03:-.03;return 'net';}}
+  if(!ignoreNet&&x0*p.x<0){const q=x0/(x0-p.x),y=p.y-v.y*dt*(1-q),z=p.z-v.z*dt*(1-q);if(y>0&&y<netHeight(z)+PHYS_R){v.x*=.4;v.y*=.3;v.z*=-.12;w.x*=.3;w.y*=.3;w.z*=.3;p.x=x0>0?.03:-.03;return 'net';}}
   return p.y<=PHYS_R&&v.y<0?'ground':0;
  }
  function physicsBounce(b){
@@ -268,8 +268,9 @@ const tennisGame=(()=> {
   if(sl>1e-4){const J=Math.min(PHYS_MU*(1+PHYS_EN)*vn,sl/2.5),dx=sx/sl,dz=sz/sl;v.x-=J*dx;v.z-=J*dz;const dw=vCross(rc,{x:-J*dx,y:0,z:-J*dz}),inv=1/(.6667*PHYS_R*PHYS_R);w.x+=dw.x*inv;w.y+=dw.y*inv;w.z+=dw.z*inv;}
  }
  function predictLanding(p,v,w){const b={p:{...p},v:{...v},w:{...w}};for(let i=0;i<1500;i++){if(physicsStep(b,1/240,true)==='ground')break;}return b.p;}
- function solveShot(p,tx,tz,type){
-  const cfg={flat:{vh:27,sp:25,d:1},top:{vh:23,sp:260,d:1},slice:{vh:19,sp:170,d:-1},lob:{vh:13.5,sp:120,d:1}}[type]||{vh:25,sp:25,d:1};
+ function solveShot(p,tx,tz,type,speedScale=1){
+  const base={flat:{vh:27,sp:25,d:1},top:{vh:23,sp:260,d:1},slice:{vh:19,sp:170,d:-1},lob:{vh:13.5,sp:120,d:1}};
+  const cfg=base[type]||base.top;cfg.vh*=speedScale;
   const dx=tx-p.x,dz=tz-p.z,dist=Math.hypot(dx,dz)||.01;let T=dist/cfg.vh;if(type==='lob')T=Math.max(T,1.5);
   const v={x:dx/T,y:(PHYS_R-p.y+.5*PHYS_G*T*T)/T,z:dz/T},dir={x:dx/dist,y:0,z:dz/dist},up=vCross({x:0,y:1,z:0},dir),w={x:up.x*cfg.sp*cfg.d,y:0,z:up.z*cfg.sp*cfg.d};
   for(let i=0;i<6;i++){const l=predictLanding(p,v,w);v.x+=(tx-l.x)/T;v.z+=(tz-l.z)/T;}
@@ -320,8 +321,8 @@ const tennisGame=(()=> {
   say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！',900);
  }
  function start(){if(live)return;try{root.clear();player=opponent=ball=null;matchOver=false;points=[0,0];games=[0,0];sets=[0,0];serveSide=0;paused=false;setCourt('tennis');scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';matchFill.intensity=.7;matchKey.intensity=1.2;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;ctl.enabled=false;cam.position.set(17,4.6,0);ctl.target.set(0,0.85,0);cam.lookAt(0,0.85,0);ctl.update();player=makePlayer(10.8,0,false);opponent=makePlayer(-10.8,0,true);live=true;
-  ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
-  const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
+  ball=new THREE.Mesh(new THREE.SphereGeometry(PHYS_R,16,12),ballMat);root.add(ball);
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(.09,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();}catch(err){live=false;paused=false;ctl.enabled=true;G.tennis.visible=true;renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);console.error('Tennis engine start failed:',err);say('試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー'));parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー')},location.origin)}}
  function stop(){live=false;serveInProgress=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);ballSpin.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
@@ -336,7 +337,7 @@ const tennisGame=(()=> {
   if(playerMoving)player.rotation.y=Math.atan2(player.position.x-oldPX,player.position.z-oldPZ);
   animatePlayer(player,dt,playerMoving);
   if(serveReady){ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(10.8,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
-  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;ball.position.set(10.35+Math.min(elapsed,.72)*.18,1.72+Math.sin(Math.min(elapsed/.72,1)*Math.PI*.5)*1.08,player.position.z-.12+Math.min(elapsed,.72)*.06);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=.72){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveSpeed=THREE.MathUtils.lerp(28,48,servePower),serveAngle=THREE.MathUtils.lerp(8,5,servePower)*Math.PI/180,serveDX=-10.8-ball.position.x,serveDZ=serveTargetZ-ball.position.z,serveHorizontal=Math.hypot(serveDX,serveDZ)||1;ballV.set(serveDX/serveHorizontal*serveSpeed*Math.cos(serveAngle),serveSpeed*Math.sin(serveAngle),serveDZ/serveHorizontal*serveSpeed*Math.cos(serveAngle));ballSpin.set(0,0,0);say('サーブ！',650)}return;}
+  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;ball.position.set(10.35+Math.min(elapsed,.72)*.18,1.72+Math.sin(Math.min(elapsed/.72,1)*Math.PI*.5)*1.08,player.position.z-.12+Math.min(elapsed,.72)*.06);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=.72){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const serveDX=-10.8,serveTZ=serveTargetZ,serveScale=THREE.MathUtils.lerp(.9,1.55,servePower),serveSolved=solveShot({x:ball.position.x,y:ball.position.y,z:ball.position.z},serveDX,serveTZ,'flat',serveScale);ballV.set(serveSolved.v.x,serveSolved.v.y,serveSolved.v.z);ballSpin.set(serveSolved.w.x,serveSolved.w.y,serveSolved.w.z);say('サーブ！',650)}return;}
   const oldOX=opponent.position.x,oldOZ=opponent.position.z;
   const destLateral=THREE.MathUtils.clamp(ball.position.z,-5.0,5.0);
   opponent.position.z=THREE.MathUtils.clamp(opponent.position.z+(destLateral-opponent.position.z)*Math.min(1,dt*3.2),-5.0,5.0);
