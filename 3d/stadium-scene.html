@@ -243,7 +243,7 @@ setCourt(courtKey);setNight(false);
 
 /* ---------- Tennis match engine (isolated from the stadium renderer) ---------- */
 const tennisGame=(()=> {
- let live=false,paused=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,mode='cpu',matchOver=false;
+ let live=false,paused=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,serveInProgress=false,serveStartedAt=0,servePower=.65,serveTargetZ=0,mode='cpu',matchOver=false;
  let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
  const root=new THREE.Group();G.tennis.add(root);
  // 既存スタジアム照明の設定をそのまま利用し、試合専用の追加ライトは使わない
@@ -266,14 +266,14 @@ const tennisGame=(()=> {
  function animatePlayer(p,dt,moving){
   if(!p)return;
   const u=p.userData,now=performance.now()/1000;
-  const next=moving?'run':'tennis:ready';
+  const next=u.serveMotion?'tennis:serve':u.swingTime>0?'tennis:fh':moving?'run':'tennis:ready';
   if(u.motion!==next){u.motion=next;window.SportsRig.setMotion(next);}
   window.SportsRig.play(u.rig,now);
   if(u.swingTime>0)u.swingTime=Math.max(0,u.swingTime-dt);
  } function say(text,duration=0){status=text;parent.postMessage({type:'tennis-engine',action:'status',text,duration},location.origin)}
  function scoreLabel(){const p=['0','15','30','40'];let a,b;if(points[0]>=3&&points[1]>=3){a=points[0]===points[1]?'40':points[0]>points[1]?'AD':'40';b=points[0]===points[1]?'40':points[1]>points[0]?'AD':'40'}else{a=p[Math.min(points[0],3)];b=p[Math.min(points[1],3)]}return a+' - '+b+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
  function emitScore(text=status,pointEvent=false){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),status:text,pointEvent,matchOver},location.origin)}
- function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);bounceCount=0;serveReady=true;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
+ function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);bounceCount=0;serveReady=true;serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=0;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
  function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false,setWon=false;
   if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];if(sets[who]>=1){setWon=true;matchOver=true;live=false;}}}
   const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
@@ -281,7 +281,7 @@ const tennisGame=(()=> {
  }
  function launch(kind,who,aim={x:0,y:0},power=.65){
   if(!live||pointLock)return;
-  if(who===0&&serveReady){serveReady=false;lastHitter=0;player.userData.swingTime=.32;ball.position.set(10.8,1.65,player.position.z);const tx=THREE.MathUtils.clamp(opponent.position.z+(Math.random()-.5)*2.5,-4.5,4.5);const travel=THREE.MathUtils.lerp(1.08,.48,THREE.MathUtils.clamp(power,.25,1));ballV.set((-10.8-ball.position.x)/travel,((1.0-ball.position.y)+4.905*travel*travel)/travel,(tx-ball.position.z)/travel);bounceCount=0;say('サーブ！');return}
+  if(who===0&&serveReady){serveReady=false;serveInProgress=true;serveStartedAt=performance.now();servePower=THREE.MathUtils.clamp(power,.25,1);serveTargetZ=THREE.MathUtils.clamp(opponent.position.z+(Math.random()-.5)*2.5+(aim.x||0)*1.2,-4.5,4.5);lastHitter=0;player.userData.serveMotion=true;player.userData.swingTime=0;ballV.set(0,0,0);ball.position.set(10.35,1.72,player.position.z-.12);bounceCount=0;say('サーブの構え…',700);return}
   const p=who===0?player:opponent,dx=ball.position.z-p.position.z,dz=ball.position.x-p.position.x;
   if(Math.abs(dx)>2.5||Math.abs(dz)>2.3||ball.position.y>3.7){if(who===0)say('ボールに近づいてタイミングよく打ってください');return}
   lastHitter=who;bounceCount=0;p.userData.swingTime=.32;
@@ -297,7 +297,7 @@ const tennisGame=(()=> {
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();}catch(err){live=false;paused=false;ctl.enabled=true;G.tennis.visible=true;renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);console.error('Tennis engine start failed:',err);say('試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー'));parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー')},location.origin)}}
- function stop(){live=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
+ function stop(){live=false;serveInProgress=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim,power){launch(kind||'hit',0,aim||{x:0,y:0},power===undefined?.65:power)}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
@@ -308,7 +308,8 @@ const tennisGame=(()=> {
   const playerMoving=Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.002;
   if(playerMoving)player.rotation.y=Math.atan2(player.position.z-oldPZ,-(player.position.x-oldPX));
   animatePlayer(player,dt,playerMoving);
-  if(serveReady){ballV.set(0,0,0);ball.position.set(10.8,1.25,player.position.z);const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
+  if(serveReady){ballV.set(0,0,0);ball.position.set(10.8,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
+  if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;ball.position.set(10.35+Math.min(elapsed,.72)*.18,1.72+Math.sin(Math.min(elapsed/.72,1)*Math.PI*.5)*1.08,player.position.z-.12+Math.min(elapsed,.72)*.06);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=.72){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const travel=THREE.MathUtils.lerp(1.08,.48,servePower);ballV.set((-10.8-ball.position.x)/travel,((.11-ball.position.y)+4.905*travel*travel)/travel,(serveTargetZ-ball.position.z)/travel);say('サーブ！',650)}return;}
   const oldOX=opponent.position.x,oldOZ=opponent.position.z;
   const destLateral=THREE.MathUtils.clamp(ball.position.z,-5.0,5.0);
   opponent.position.z=THREE.MathUtils.clamp(opponent.position.z+(destLateral-opponent.position.z)*Math.min(1,dt*3.2),-5.0,5.0);
