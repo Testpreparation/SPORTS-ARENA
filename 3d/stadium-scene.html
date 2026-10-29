@@ -199,7 +199,7 @@ court('tennis',36.6,18.3,64,g=>{g.fillStyle='#3a7a55';g.fillRect(-18.3,-9.15,36.
  g.fillStyle='#2a5fb0';g.fillRect(-12.9,-6.1,25.8,12.2);gr=g.createRadialGradient(0,0,1,0,0,16);gr.addColorStop(0,'rgba(255,255,255,.12)');gr.addColorStop(1,'rgba(0,10,40,.2)');g.fillStyle=gr;g.fillRect(-12.9,-6.1,25.8,12.2);
  g.strokeStyle='#1d4684';g.lineWidth=.1;g.strokeRect(-12.9,-6.1,25.8,12.2);
  for(const s of[-1,1]){const w=g.createRadialGradient(s*11.6,0,.1,s*11.6,0,2.2);w.addColorStop(0,'rgba(255,255,255,.1)');w.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=w;g.fillRect(s*11.6-2.3,-2.3,4.6,4.6)}
- wh(g);g.lineWidth=.05;ln(g,-11.885,4.115,11.885,4.115);ln(g,-11.885,-4.115,11.885,-4.115);ln(g,-6.4,-4.115,-6.4,4.115);ln(g,6.4,-4.115,6.4,4.115);ln(g,-6.4,0,6.4,0);ln(g,0,-5.485,0,-5.485);g.lineWidth=.05;ln(g,-11.885,-5.485,-11.885,5.485);ln(g,11.885,-5.485,11.885,5.485);ln(g,-11.885,5.485,11.885,5.485);ln(g,-11.885,-5.485,11.885,-5.485);g.lineWidth=.1;ln(g,-11.885,-5.485,-11.885,5.485);ln(g,11.885,-5.485,11.885,5.485);g.lineWidth=.1;ln(g,-11.885,0,-11.585,0);ln(g,11.885,0,11.585,0);
+ wh(g);g.strokeStyle='#ffffff';g.lineCap='butt';g.lineJoin='miter';g.lineWidth=.065;rc(g,23.77,10.97);rc(g,23.77,8.23);ln(g,-6.4,-4.115,-6.4,4.115);ln(g,6.4,-4.115,6.4,4.115);ln(g,-6.4,0,6.4,0);g.lineWidth=.09;ln(g,-11.885,-4.115,-11.885,4.115);ln(g,11.885,-4.115,11.885,4.115);
  logo(g,15.4,'ARENA OPEN',1.7);g.fillStyle='rgba(255,255,255,.8)';g.font='bold .6px sans-serif';g.textAlign='center';for(const z of[-7.7,7.7])for(const x of[-6,6])g.fillText('ARENA',x,z+.2)},{roughness:.55,clearcoat:.15});
 court('volley',24,15,64,g=>{for(let z=-7.5;z<7.5;z+=.09){let x=-12-R()*1.1;while(x<12){const v=R()*22|0;g.fillStyle=`rgb(${214+v},${176+v},${118+v})`;g.fillRect(x,z,1.1,.09);g.fillStyle='rgba(90,55,20,.25)';g.fillRect(x,z,.012,.09);g.fillRect(x,z,1.1,.006);if(R()<.5){g.fillStyle='rgba(120,75,30,.12)';g.fillRect(x+R()*1.1,z+.02,.3+R()*.5,.01)}x+=1.1}}
  g.fillStyle='rgba(28,78,150,.88)';g.beginPath();g.rect(-12,-7.5,24,15);g.rect(-9,-4.5,18,9);g.fill('evenodd');g.fillStyle='rgba(236,128,48,.5)';g.fillRect(-9,-4.5,18,9);g.fillStyle='rgba(200,90,30,.3)';g.fillRect(-3,-4.5,6,9);wh(g);g.lineWidth=.05;rc(g,18,9);ln(g,0,-4.5,0,4.5);ln(g,-3,-4.5,-3,4.5);ln(g,3,-4.5,3,4.5);logo(g,10.6,'ARENA VOLLEY',1.2)},{roughness:.28,clearcoat:.8});
@@ -330,9 +330,11 @@ const tennisGame=(()=> {
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
   const speed=7.8,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0),moveLen=Math.hypot(dx,dz)||1,pu=player.userData,accel=1-Math.exp(-22*dt);
   const oldPX=player.position.x,oldPZ=player.position.z;
-  pu.vx+=(dx/moveLen*speed-pu.vx)*accel;pu.vz+=(dz/moveLen*speed-pu.vz)*accel;
-  const servingPosition=serveReady;player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,servingPosition?12.0:0.8,14.2);
-  player.position.z=THREE.MathUtils.clamp(player.position.z+pu.vz*dt,-5.0,5.0);
+  const movementLocked=serveReady||serveInProgress;
+  if(movementLocked){pu.vx=0;pu.vz=0;}else{pu.vx+=(dx/moveLen*speed-pu.vx)*accel;pu.vz+=(dz/moveLen*speed-pu.vz)*accel;}
+  player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,.8,14.2);
+  player.position.z=THREE.MathUtils.clamp(player.position.z+pu.vz*dt,-5.8,5.8);
+  if(live&&Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.0001){const fx=player.position.x-oldPX,fz=player.position.z-oldPZ;cam.position.x+=fx;cam.position.z+=fz;ctl.target.x+=fx;ctl.target.z+=fz;}
   const playerMoving=Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.002;
   if(playerMoving)player.rotation.y=Math.atan2(player.position.x-oldPX,player.position.z-oldPZ);
   animatePlayer(player,dt,playerMoving);
