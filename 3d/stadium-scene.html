@@ -286,11 +286,11 @@ const tennisGame=(()=> {
   const speed=kind==='power'?20:kind==='drop'?9:kind==='slice'?12:15;
   ballV.copy(delta.multiplyScalar(speed));say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
  }
- function start(){if(live)return;try{matchOver=false;live=true;matchFill.visible=false;matchKey.visible=false;G.tennis.visible=true;setCourt('tennis');ctl.enabled=false;cam.position.set(0,10.5,28);ctl.target.set(0,1.8,0);cam.lookAt(0,1.8,0);ctl.update();player=makePlayer(0,7.1,false);opponent=makePlayer(0,-7.1,true);
+ function start(){if(live)return;try{matchOver=false;live=true;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;setCourt('tennis');ctl.enabled=false;cam.position.set(0,13.5,30);ctl.target.set(0,6.2,0);cam.lookAt(0,6.2,0);ctl.update();player=makePlayer(0,7.1,false);opponent=makePlayer(0,-7.1,true);
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();say('サーブしてください');}catch(err){live=false;console.error('Tennis engine start failed:',err);parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+err.message},location.origin)}}
- function stop(){live=false;matchFill.visible=false;matchKey.visible=false;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
+ function stop(){live=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim){launch(kind||'hit',0,aim||{x:0,y:0})}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
