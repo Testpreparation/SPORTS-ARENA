@@ -286,7 +286,7 @@ const tennisGame=(()=> {
   let targetLateral=(who===0?opponent:player).position.z+(Math.random()-.5)*(kind==='drop'?1.4:4.6)+(aim.x||0)*3.5;
   targetLateral=THREE.MathUtils.clamp(targetLateral,-4.5,4.5);
   const targetLongitudinal=who===0?-10.8:10.8;
-  const dx=targetLongitudinal-ball.position.x,dz=targetLateral-ball.position.z,L=Math.hypot(dx,dz)||1,ux=dx/L,uz=dz/L;
+  const shotDX=targetLongitudinal-ball.position.x,shotDZ=targetLateral-ball.position.z,L=Math.hypot(shotDX,shotDZ)||1,ux=shotDX/L,uz=shotDZ/L;
   const angle=(kind==='drop'?7:kind==='power'?17:11)*Math.PI/180;let speed=Math.max(10,L*1.4),vx=0,vy=0,vz=0;
   for(let n=0;n<16;n++){vx=ux*speed*Math.cos(angle);vz=uz*speed*Math.cos(angle);vy=speed*Math.sin(angle);let x=ball.position.x,y=ball.position.y,z=ball.position.z,px=vx,py=vy,pz=vz,t=0;while(t<8){const sp=Math.hypot(px,py,pz),drag=.02*sp;px+=(-drag*px)*(1/120);pz+=(-drag*pz)*(1/120);py+=(-9.8-drag*py)*(1/120);x+=px*(1/120);y+=py*(1/120);z+=pz*(1/120);t+=1/120;if(y<=.11)break}const landed=Math.hypot(x-ball.position.x,z-ball.position.z)||.1;speed=THREE.MathUtils.clamp(speed*Math.pow(L/landed,.6),3,70)}
   ballV.set(vx,vy,vz);say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
