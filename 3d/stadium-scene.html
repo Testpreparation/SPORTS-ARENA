@@ -243,7 +243,7 @@ setCourt(courtKey);setNight(false);
 
 /* ---------- Tennis match engine (isolated from the stadium renderer) ---------- */
 const tennisGame=(()=> {
- let live=false,paused=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,serveInProgress=false,serveStartedAt=0,servePower=.65,serveTargetZ=0,mode='cpu',matchOver=false;
+ let live=false,paused=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),ballSpin=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,serveInProgress=false,serveStartedAt=0,servePower=.65,serveTargetZ=0,mode='cpu',matchOver=false;
  let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
  const root=new THREE.Group();G.tennis.add(root);
  // 既存スタジアム照明の設定をそのまま利用し、試合専用の追加ライトは使わない
@@ -273,7 +273,7 @@ const tennisGame=(()=> {
  } function say(text,duration=0){status=text;parent.postMessage({type:'tennis-engine',action:'status',text,duration},location.origin)}
  function scoreLabel(){const p=['0','15','30','40'];let a,b;if(points[0]>=3&&points[1]>=3){a=points[0]===points[1]?'40':points[0]>points[1]?'AD':'40';b=points[0]===points[1]?'40':points[1]>points[0]?'AD':'40'}else{a=p[Math.min(points[0],3)];b=p[Math.min(points[1],3)]}return a+' - '+b+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
  function emitScore(text=status,pointEvent=false){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),status:text,pointEvent,matchOver},location.origin)}
- function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);bounceCount=0;serveReady=true;serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=0;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
+ function resetBall(){ball.position.set(10.8,1.25,player.position.z);ballV.set(0,0,0);ballSpin.set(0,0,0);if(ball)ball.userData.net=false;bounceCount=0;serveReady=true;serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=0;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
  function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false,setWon=false;
   if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];if(sets[who]>=1){setWon=true;matchOver=true;live=false;}}}
   const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
@@ -290,18 +290,19 @@ const tennisGame=(()=> {
   const targetLongitudinal=who===0?-10.8:10.8;
   const shotDX=targetLongitudinal-ball.position.x,shotDZ=targetLateral-ball.position.z,L=Math.hypot(shotDX,shotDZ)||1,ux=shotDX/L,uz=shotDZ/L;
   const angle=(kind==='drop'?7:kind==='power'?17:11)*Math.PI/180;let speed=Math.max(10,L*1.4),vx=0,vy=0,vz=0;
-  for(let n=0;n<16;n++){vx=ux*speed*Math.cos(angle);vz=uz*speed*Math.cos(angle);vy=speed*Math.sin(angle);let x=ball.position.x,y=ball.position.y,z=ball.position.z,px=vx,py=vy,pz=vz,t=0;while(t<8){const sp=Math.hypot(px,py,pz),drag=.02*sp;px+=(-drag*px)*(1/120);pz+=(-drag*pz)*(1/120);py+=(-9.8-drag*py)*(1/120);x+=px*(1/120);y+=py*(1/120);z+=pz*(1/120);t+=1/120;if(y<=.11)break}const landed=Math.hypot(x-ball.position.x,z-ball.position.z)||.1;speed=THREE.MathUtils.clamp(speed*Math.pow(L/landed,.6),3,70)}
-  ballV.set(vx,vy,vz);say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！',900);
+  const spinPower=kind==='slice'?-35:kind==='power'?18:0,spinAxis=new THREE.Vector3(uz*spinPower,0,-ux*spinPower);
+  for(let n=0;n<16;n++){vx=ux*speed*Math.cos(angle);vz=uz*speed*Math.cos(angle);vy=speed*Math.sin(angle);let x=ball.position.x,y=ball.position.y,z=ball.position.z,px=vx,py=vy,pz=vz,t=0;while(t<8){const sp=Math.hypot(px,py,pz),drag=.02*sp,ax=-drag*px+7e-4*(spinAxis.y*pz-spinAxis.z*py),az=-drag*pz+7e-4*(spinAxis.x*py-spinAxis.y*px),ay=-9.8-drag*py+7e-4*(spinAxis.z*px-spinAxis.x*pz);px+=ax/120;pz+=az/120;py+=ay/120;x+=px/120;y+=py/120;z+=pz/120;t+=1/120;if(y<=.13)break}const landed=Math.hypot(x-ball.position.x,z-ball.position.z)||.1;speed=THREE.MathUtils.clamp(speed*Math.pow(L/landed,.6),3,70)}
+  ballV.set(vx,vy,vz);ballSpin.set(spinAxis.x,kind==='slice'?-18:kind==='power'?10:0,spinAxis.z);say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！',900);
  }
  function start(){if(live)return;try{root.clear();player=opponent=ball=null;matchOver=false;points=[0,0];games=[0,0];sets=[0,0];serveSide=0;paused=false;setCourt('tennis');scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';matchFill.intensity=.7;matchKey.intensity=1.2;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;ctl.enabled=false;cam.position.set(17,4.6,0);ctl.target.set(0,0.85,0);cam.lookAt(0,0.85,0);ctl.update();player=makePlayer(10.8,0,false);opponent=makePlayer(-10.8,0,true);live=true;
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();}catch(err){live=false;paused=false;ctl.enabled=true;G.tennis.visible=true;renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);console.error('Tennis engine start failed:',err);say('試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー'));parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー')},location.origin)}}
- function stop(){live=false;serveInProgress=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
+ function stop(){live=false;serveInProgress=false;matchFill.visible=true;matchKey.visible=true;ctl.enabled=true;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);ballSpin.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
  function hit(kind,aim,power){launch(kind||'hit',0,aim||{x:0,y:0},power===undefined?.65:power)}
  function update(){if(!live||paused)return;const now=performance.now(),dt=Math.min(.035,(now-last)/1000);last=now;
-  const speed=5.6,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0),moveLen=Math.hypot(dx,dz)||1,pu=player.userData,accel=1-Math.exp(-13*dt);
+  const speed=7.8,dx=(keys.has('down')?1:0)-(keys.has('up')?1:0),dz=(keys.has('left')?1:0)-(keys.has('right')?1:0),moveLen=Math.hypot(dx,dz)||1,pu=player.userData,accel=1-Math.exp(-22*dt);
   const oldPX=player.position.x,oldPZ=player.position.z;
   pu.vx+=(dx/moveLen*speed-pu.vx)*accel;pu.vz+=(dz/moveLen*speed-pu.vz)*accel;
   player.position.x=THREE.MathUtils.clamp(player.position.x+pu.vx*dt,0.8,11.4);
@@ -309,7 +310,7 @@ const tennisGame=(()=> {
   const playerMoving=Math.hypot(player.position.x-oldPX,player.position.z-oldPZ)>.002;
   if(playerMoving)player.rotation.y=Math.atan2(player.position.x-oldPX,player.position.z-oldPZ);
   animatePlayer(player,dt,playerMoving);
-  if(serveReady){ballV.set(0,0,0);ball.position.set(10.8,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
+  if(serveReady){ballV.set(0,0,0);ballSpin.set(0,0,0);ball.position.set(10.8,1.25,player.position.z);player.userData.serveMotion=false;const idleShadow=ball.userData.shadow;if(idleShadow)idleShadow.position.set(ball.position.x,.025,ball.position.z);return;}
   if(serveInProgress){const elapsed=(now-serveStartedAt)/1000;ball.position.set(10.35+Math.min(elapsed,.72)*.18,1.72+Math.sin(Math.min(elapsed/.72,1)*Math.PI*.5)*1.08,player.position.z-.12+Math.min(elapsed,.72)*.06);ballV.set(0,0,0);const sh=ball.userData.shadow;if(sh){sh.position.set(ball.position.x,.025,ball.position.z);sh.scale.setScalar(.75)}if(elapsed>=.72){serveInProgress=false;player.userData.serveMotion=false;player.userData.swingTime=.34;const travel=THREE.MathUtils.lerp(1.08,.48,servePower);ballV.set((-10.8-ball.position.x)/travel,((.11-ball.position.y)+4.905*travel*travel)/travel,(serveTargetZ-ball.position.z)/travel);say('サーブ！',650)}return;}
   const oldOX=opponent.position.x,oldOZ=opponent.position.z;
   const destLateral=THREE.MathUtils.clamp(ball.position.z,-5.0,5.0);
@@ -319,11 +320,11 @@ const tennisGame=(()=> {
   const opponentMoving=Math.hypot(opponent.position.x-oldOX,opponent.position.z-oldOZ)>.002;
   if(opponentMoving)opponent.rotation.y=Math.atan2(opponent.position.x-oldOX,opponent.position.z-oldOZ);
   animatePlayer(opponent,dt,opponentMoving);
-  const previousZ=ball.position.x;const substeps=Math.max(1,Math.ceil(dt/(1/120))),h=dt/substeps;for(let i=0;i<substeps;i++){const ballSpeed=ballV.length(),drag=.02*ballSpeed;ballV.x-=drag*ballV.x*h;ballV.y+=(-9.8-drag*ballV.y)*h;ballV.z-=drag*ballV.z*h;ball.position.addScaledVector(ballV,h)}
+  const previousZ=ball.position.x;const substeps=Math.max(1,Math.ceil(dt/(1/120))),h=dt/substeps;for(let i=0;i<substeps;i++){const ballSpeed=ballV.length(),drag=.02*ballSpeed,km=7e-4,ax=-drag*ballSpeed*ballV.x+km*(ballSpin.y*ballV.z-ballSpin.z*ballV.y),az=-drag*ballSpeed*ballV.z+km*(ballSpin.x*ballV.y-ballSpin.y*ballV.x),ay=-9.8-drag*ballSpeed*ballV.y+km*(ballSpin.z*ballV.x-ballSpin.x*ballV.z);ballV.x+=ax*h;ballV.y+=ay*h;ballV.z+=az*h;ballSpin.multiplyScalar(1-.08*h);const oldX=ball.position.x,oldY=ball.position.y;ball.position.addScaledVector(ballV,h);const crossedNet=oldX*ball.position.x<0,netCrossT=crossedNet?THREE.MathUtils.clamp(-oldX/(ball.position.x-oldX),0,1):1,netCrossY=oldY+(ball.position.y-oldY)*netCrossT;if(!ball.userData.net&&crossedNet&&netCrossY<.86){ball.userData.net=true;ballV.x*=-.12;ballV.z*=.3;ballV.y=Math.max(ballV.y,0)*.2;ball.position.x=oldX;ball.position.y=netCrossY;ballSpin.multiplyScalar(.55)}}
   const sh=ball.userData.shadow;sh.position.set(ball.position.x,.025,ball.position.z);const scale=THREE.MathUtils.clamp(1-ball.position.y*.08,.25,1);sh.scale.setScalar(scale);
   if(previousZ>=-.1&&ball.position.x<-.1&&ball.position.y<1.15){point(1,'ネット');return}
   if(previousZ<=-.1&&ball.position.x>-.1&&ball.position.y<1.15){point(0,'ネット');return}
-  if(ball.position.y<=.11){ball.position.y=.11;if(Math.abs(ballV.x)>0)ballV.x*=.88;ballV.y=Math.abs(ballV.y)*.75;ballV.x*=.92;ballV.z*=.92;bounceCount++;
+  if(ball.position.y<=.13){ball.position.y=.13;if(ball.userData.net){point(1-lastHitter,'ネット');return}const spinSide=(ballSpin.x*ballV.z-ballSpin.z*ballV.x)/(Math.hypot(ballV.x,ballV.z)||1),bounceMod=THREE.MathUtils.clamp(.78+spinSide*.0007,.55,1);ballV.y=-ballV.y*.75*(1-THREE.MathUtils.clamp(ballV.length()*.003,0,.2));ballV.x*=bounceMod;ballV.z*=bounceMod;if(Math.abs(ballSpin.y)>.1){ballV.y-=Math.sign(ballSpin.y)*Math.min(1.8,Math.abs(ballSpin.y)*.07);ballV.x*=1+Math.min(.025,Math.abs(ballSpin.y)*.001)}ballSpin.multiplyScalar(.72);bounceCount++;
    const side=ball.position.x<0?1:0;
    if(Math.abs(ball.position.x)>11.885||Math.abs(ball.position.z)>5.485){point(lastHitter===0?1:0,'アウト');return}
    if(bounceCount>=2){point(lastHitter===0?1:0,'ツーバウンド');return}
