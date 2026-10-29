@@ -237,7 +237,7 @@ let sl=-1;function drawSlide(i){const[b,f,a,c,t]=slides[i],g=spX,gr=g.createLine
 tod=12;
 const requestedCourt=new URLSearchParams(location.search).get('sport');
 // テニス中のメッセージは親画面のHUDに表示するため、iframe内の重複表示を隠す。
-if(requestedCourt==='tennis'){const centerMessage=document.getElementById('msg');if(centerMessage)centerMessage.style.display='none'}
+if(requestedCourt==='tennis'){document.getElementById('msg')?.setAttribute('hidden','')}
 const courtKey=({badminton:'badm',badm:'badm',tennis:'tennis',volley:'volley',tt:'tt'})[requestedCourt]||'badm';
 setCourt(courtKey);setNight(false);
 
