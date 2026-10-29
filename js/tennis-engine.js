@@ -13,15 +13,25 @@ function makeUI(){
  hud.id='tennisEngineScore';hud.innerHTML='<div style="font-size:10px;letter-spacing:2px;opacity:.75">TENNIS MATCH</div><strong style="font-size:25px">0 - 0</strong><div id="tennisEngineStatus" style="font-size:12px;margin-top:3px">サーブしてください</div>';ui.appendChild(hud);
  const exit=button('✕ 終了','quit');style(exit,{position:'absolute',top:'max(12px,env(safe-area-inset-top))',left:'max(12px,env(safe-area-inset-left))',pointerEvents:'auto',padding:'10px 14px',border:'1px solid #ffffff55',borderRadius:'12px',background:'#081625d9',color:'#fff',fontWeight:'800'});
  ui.appendChild(exit);
- const controls=style(document.createElement('div'),{position:'absolute',left:'max(16px,env(safe-area-inset-left))',bottom:'max(18px,env(safe-area-inset-bottom))',display:'flex',alignItems:'end',gap:'8px',pointerEvents:'auto'});
- const pad=style(document.createElement('div'),{display:'grid',gridTemplateColumns:'repeat(3,44px)',gridTemplateRows:'repeat(2,42px)',gap:'4px'});
- [['←','left',0,1],['→','right',2,1],['↑','up',1,0],['↓','down',1,1]].forEach(([label,act,x,y])=>{const b=button(label,act);style(b,{gridColumn:String(x+1),gridRow:String(y+1),border:'1px solid #ffffff55',borderRadius:'12px',background:'#0a1c2cbb',color:'#fff',fontSize:'18px',fontWeight:'800',touchAction:'none'});pad.appendChild(b);});
- controls.appendChild(pad);
- const hitBox=style(document.createElement('div'),{display:'grid',gridTemplateColumns:'repeat(2,minmax(76px,auto))',gap:'7px'});
- [['サーブ/打つ','hit'],['強打','power'],['ドロップ','drop'],['スライス','slice']].forEach(([label,act])=>{const b=button(label,act);style(b,{padding:'13px 12px',border:'1px solid #ffffff66',borderRadius:'13px',background:act==='hit'?'#1676d2dd':'#081625d9',color:'#fff',fontWeight:'800',fontSize:'13px',touchAction:'none'});hitBox.appendChild(b)});
- controls.appendChild(hitBox);ui.appendChild(controls);stage.appendChild(ui);
- ui.addEventListener('pointerdown',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const a=b.dataset.action;if(a==='quit'){stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'));return}if(['left','right','up','down'].includes(a)){e.preventDefault();keys.add(a);post('move',{keys:[...keys]});return}if(['hit','power','drop','slice'].includes(a)){e.preventDefault();post('hit',{kind:a});}});
- ['pointerup','pointercancel','pointerleave'].forEach(type=>ui.addEventListener(type,e=>{if(e.target.closest('button[data-action]')){keys.clear();post('move',{keys:[]})}}));
+ const controls=style(document.createElement('div'),{position:'absolute',inset:'auto 0 max(18px,env(safe-area-inset-bottom)) 0',display:'flex',justifyContent:'space-between',alignItems:'end',padding:'0 max(18px,env(safe-area-inset-left))',pointerEvents:'none',gap:'20px'});
+ const joyWrap=style(document.createElement('div'),{width:'140px',height:'140px',position:'relative',pointerEvents:'auto',touchAction:'none',flex:'0 0 140px'});
+ const joyBase=style(document.createElement('div'),{position:'absolute',inset:'8px',borderRadius:'50%',background:'rgba(8,25,42,.48)',border:'2px solid rgba(255,255,255,.48)',boxShadow:'inset 0 0 20px #0005'});
+ const joyKnob=style(document.createElement('div'),{position:'absolute',width:'54px',height:'54px',left:'43px',top:'43px',borderRadius:'50%',background:'rgba(245,250,255,.85)',border:'2px solid #fff',boxShadow:'0 3px 12px #0006'});
+ joyWrap.append(joyBase,joyKnob);controls.appendChild(joyWrap);
+ const hitArea=style(document.createElement('div'),{display:'flex',flexDirection:'column',alignItems:'center',gap:'8px',pointerEvents:'auto',touchAction:'none'});
+ const shotHint=style(document.createElement('div'),{fontSize:'11px',padding:'5px 9px',borderRadius:'10px',background:'#081625bb',color:'#fff'});shotHint.textContent='方向を入力して打つ';
+ const hit=button('打つ','hit');style(hit,{width:'104px',height:'104px',borderRadius:'50%',border:'3px solid #ffffffbb',background:'linear-gradient(145deg,#2188ee,#0752a7)',color:'#fff',fontSize:'21px',fontWeight:'900',boxShadow:'0 6px 22px #0007',touchAction:'none'});
+ hitArea.append(shotHint,hit);controls.appendChild(hitArea);ui.appendChild(controls);stage.appendChild(ui);
+ let joyId=null,origin=null,aim={x:0,y:0},hitStart=0,hitTimer=null;
+ const joyMove=ev=>{if(joyId!==ev.pointerId||!origin)return;const dx=ev.clientX-origin.x,dy=ev.clientY-origin.y,len=Math.hypot(dx,dy),scale=len>42?42/len:1;aim={x:Math.max(-1,Math.min(1,dx/42)),y:Math.max(-1,Math.min(1,-dy/42))};joyKnob.style.left=(43+dx*scale)+'px';joyKnob.style.top=(43+dy*scale)+'px';const k=[];if(aim.x<-.25)k.push('left');if(aim.x>.25)k.push('right');if(aim.y>.25)k.push('up');if(aim.y<-.25)k.push('down');keys=new Set(k);post('move',{keys:k,aim})};
+ joyWrap.addEventListener('pointerdown',ev=>{ev.preventDefault();joyId=ev.pointerId;origin={x:ev.clientX,y:ev.clientY};joyWrap.setPointerCapture(ev.pointerId);joyMove(ev)});
+ joyWrap.addEventListener('pointermove',joyMove);
+ const joyEnd=ev=>{if(joyId!==ev.pointerId)return;joyId=null;origin=null;keys.clear();aim={x:0,y:0};joyKnob.style.left='43px';joyKnob.style.top='43px';post('move',{keys:[]})};
+ joyWrap.addEventListener('pointerup',joyEnd);joyWrap.addEventListener('pointercancel',joyEnd);
+ hit.addEventListener('pointerdown',ev=>{ev.preventDefault();hitStart=performance.now();hit.setPointerCapture(ev.pointerId);hit.style.transform='scale(.94)';hitTimer=setTimeout(()=>{shotHint.textContent='強打！'},420)});
+ const hitEnd=ev=>{if(!hitStart)return;ev.preventDefault();const duration=performance.now()-hitStart;hitStart=0;clearTimeout(hitTimer);hit.style.transform='';shotHint.textContent='方向を入力して打つ';post('hit',{kind:duration>420?'power':'hit',aim})};
+ hit.addEventListener('pointerup',hitEnd);hit.addEventListener('pointercancel',hitEnd);
+ ui.querySelector('[data-action="quit"]').addEventListener('click',()=>{stop();window.dispatchEvent(new CustomEvent('tennis-engine-exit'))});
 }
 function start(iframe,container){frame=iframe;stage=container;active=true;makeUI();frame.addEventListener('load',()=>post('start'),{once:true});if(frame.contentDocument?.readyState==='complete')post('start');}
 function stop(){active=false;keys.clear();post('stop');$('tennisEngineUI')?.remove();frame=null;stage=null}
