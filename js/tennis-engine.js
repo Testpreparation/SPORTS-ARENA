@@ -52,7 +52,7 @@ function showPointScore(d){
  clearPointScore();
  const sets=d.sets||[0,0],games=d.games||[0,0],pts=d.points||[0,0];
  const labels=['0','15','30','40'];
- const p=(a,b)=>a>=3&&b>=3?(a===b?'40':a>b?'Ad':'40'):labels[Math.min(a,3)];
+ const p=(a,b)=>d.tiebreak?String(a):(a>=3&&b>=3?(a===b?'40':a>b?'Ad':'40'):labels[Math.min(a,3)]);
  const clean=v=>String(v??'').replace(/[<>&"]/g,'');
  const home=clean(localStorage.getItem('rs-nick')||'あなた'),away='CPU';
  const a=p(pts[0],pts[1]),b=p(pts[1],pts[0]);
@@ -76,7 +76,7 @@ function setStatus(t,options={}){
 function updateScore(d){
  const score=$('score');if(!score)return;
  const sets=d.sets||[0,0],games=d.games||[0,0],pts=d.points||[0,0],labels=['0','15','30','40'];
- const point=(a,b,side)=>{if(a>=3&&b>=3){if(a===b)return '40';return (side===0?a>b:b>a)?'Ad':'40'}return labels[Math.min(side===0?a:b,3)]};
+ const point=(a,b,side)=>d.tiebreak?String(side===0?a:b):(a>=3&&b>=3?(a===b?'40':(side===0?a>b:b>a)?'Ad':'40'):labels[Math.min(side===0?a:b,3)]);
  const safe=n=>String(n).replace(/[<>&"]/g,'');
  const player=(n,p)=>'<div class="sr playerPoint"><b>'+safe(n)+'</b><u>'+p+'</u></div>';
  score.innerHTML='<div class="sr summary compactSummary"><b>SET '+sets[0]+' - '+sets[1]+'</b><i>GAME '+games[0]+' - '+games[1]+'</i></div>'+player(localStorage.getItem('rs-nick')||'あなた',point(pts[0],pts[1],0))+player('CPU',point(pts[0],pts[1],1));

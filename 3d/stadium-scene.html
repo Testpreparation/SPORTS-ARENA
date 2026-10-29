@@ -244,7 +244,7 @@ setCourt(courtKey);setNight(false);
 /* ---------- Tennis match engine (isolated from the stadium renderer) ---------- */
 const tennisGame=(()=> {
  let live=false,paused=false,last=performance.now(),keys=new Set(),ball,player,opponent,ballV=new THREE.Vector3(),ballSpin=new THREE.Vector3(),bounceCount=0,pointLock=false,serveReady=true,serveInProgress=false,serveStartedAt=0,servePower=.65,serveTargetZ=0,serveFaults=0,currentServe=false,mode='cpu',matchOver=false;
- let points=[0,0],games=[0,0],sets=[0,0],status='サーブしてください',lastHitter=0,serveSide=0;
+ let points=[0,0],games=[0,0],sets=[0,0],tiebreak=false,status='サーブしてください',lastHitter=0,serveSide=0;
  const root=new THREE.Group();G.tennis.add(root);
  // 既存スタジアム照明の設定をそのまま利用し、試合専用の追加ライトは使わない
  const matchFill=new THREE.HemisphereLight(0xffffff,0x8797aa,0);matchFill.visible=false;scene.add(matchFill);
@@ -300,12 +300,27 @@ const tennisGame=(()=> {
   if(u.swingTime>0)u.swingTime=Math.max(0,u.swingTime-dt);
  } function say(text,duration=0){status=text;parent.postMessage({type:'tennis-engine',action:'status',text,duration},location.origin)}
  function scoreLabel(){const p=['0','15','30','40'];let a,b;if(points[0]>=3&&points[1]>=3){a=points[0]===points[1]?'40':points[0]>points[1]?'AD':'40';b=points[0]===points[1]?'40':points[1]>points[0]?'AD':'40'}else{a=p[Math.min(points[0],3)];b=p[Math.min(points[1],3)]}return a+' - '+b+'  |  '+games[0]+' - '+games[1]+' ゲーム'}
- function emitScore(text=status,pointEvent=false){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),status:text,pointEvent,matchOver},location.origin)}
+ function emitScore(text=status,pointEvent=false){parent.postMessage({type:'tennis-engine',action:'score',score:scoreLabel(),sets:sets.slice(),games:games.slice(),points:points.slice(),tiebreak,status:text,pointEvent,matchOver},location.origin)}
  function resetBall(){ball.position.set(12.15,1.25,player.position.z);ball.visible=false;if(ball?.userData.shadow)ball.userData.shadow.visible=false;ballV.set(0,0,0);ballSpin.set(0,0,0);if(ball)ball.userData.net=false;bounceCount=0;serveReady=true;serveInProgress=false;currentServe=false;serveFaults=0;player.userData.serveMotion=false;player.userData.swingTime=0;pointLock=false;lastHitter=0;say('サーブ：ボタン／Space長押しで威力調整');emitScore('サーブ：ボタン／Space長押しで威力調整')}
- function point(who,why){if(pointLock||!live)return;pointLock=true;points[who]++;let gameWon=false,setWon=false;
-  if(points[who]>=4&&points[who]-points[1-who]>=2){games[who]++;points=[0,0];gameWon=true;if(games[who]>=6&&games[who]-games[1-who]>=2){sets[who]++;games=[0,0];if(sets[who]>=1){setWon=true;matchOver=true;live=false;}}}
-  const text=setWon?(who===0?'あなたの勝利！':'CPUの勝利！'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
-  emitScore(text,true);say(text,1200);if(setWon){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who},location.origin);return}setTimeout(()=>{if(!live)return;resetBall()},1200);
+ function point(who,why){if(pointLock||!live)return;pointLock=true;const i=who,o=1-i;points[i]++;let gameWon=false,setWon=false;
+  /* 試合進行は BADMINTON-ARENA/index.html の point(w,why) のテニス判定を移植。
+     3Dシーン、モデル、マテリアル、テクスチャには触れない。 */
+  if(tiebreak){
+   const total=points[0]+points[1];
+   if(points[i]>=7&&points[i]-points[o]>=2){
+    games[i]++;points=[0,0];tiebreak=false;gameWon=true;
+    if((games[i]>=6&&games[i]-games[o]>=2)||games[i]===7){sets[i]++;games=[0,0];setWon=true}
+   }
+  }else if(points[i]>=4&&points[i]-points[o]>=2){
+   games[i]++;points=[0,0];gameWon=true;
+   if(games[i]>=6&&games[i]-games[o]>=2){sets[i]++;games=[0,0];setWon=true}
+   else if(games[0]===6&&games[1]===6){tiebreak=true;points=[0,0]}
+  }
+  if(sets[i]>=2){setWon=true;matchOver=true;live=false}
+  const text=matchOver?(who===0?'あなたの勝利！':'CPUの勝利！'):setWon?(who===0?'セット獲得！':'CPUがセット獲得'):(who===0?'あなた':'CPU')+'のポイント'+(gameWon?'・ゲーム獲得':'')+'：'+why;
+  emitScore(text,true);say(text,1200);
+  if(matchOver){parent.postMessage({type:'tennis-engine',action:'matchEnd',winner:who,sets:sets.slice(),games:games.slice()},location.origin);return}
+  setTimeout(()=>{if(!live)return;resetBall()},1200);
  }
  function launch(kind,who,aim={x:0,y:0},power=.65){
   if(!live||pointLock)return;
@@ -321,7 +336,7 @@ const tennisGame=(()=> {
   ballV.set(solved.v.x,solved.v.y,solved.v.z);ballSpin.set(solved.w.x,solved.w.y,solved.w.z);
   say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！',900);
  }
- function start(){if(live)return;try{root.clear();player=opponent=ball=null;matchOver=false;points=[0,0];games=[0,0];sets=[0,0];serveSide=0;paused=false;setCourt('tennis');scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';matchFill.intensity=.7;matchKey.intensity=1.2;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;ctl.enabled=false;tp=null;tt=null;cam.position.set(17,1.9,0);ctl.target.set(0,0.65,0);cam.lookAt(0,0.65,0);ctl.update();player=makePlayer(12.6,0,false);opponent=makePlayer(-10.8,0,true);if(player.userData.rig.ball)player.userData.rig.ball.visible=false;if(opponent.userData.rig.ball)opponent.userData.rig.ball.visible=false;live=true;
+ function start(){if(live)return;try{root.clear();player=opponent=ball=null;matchOver=false;points=[0,0];games=[0,0];sets=[0,0];tiebreak=false;serveSide=0;paused=false;setCourt('tennis');scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';matchFill.intensity=.7;matchKey.intensity=1.2;matchFill.visible=true;matchKey.visible=true;G.tennis.visible=true;ctl.enabled=false;tp=null;tt=null;cam.position.set(17,1.9,0);ctl.target.set(0,0.65,0);cam.lookAt(0,0.65,0);ctl.update();player=makePlayer(12.6,0,false);opponent=makePlayer(-10.8,0,true);if(player.userData.rig.ball)player.userData.rig.ball.visible=false;if(opponent.userData.rig.ball)opponent.userData.rig.ball.visible=false;live=true;
   ball=new THREE.Mesh(new THREE.SphereGeometry(PHYS_R,16,12),ballMat);ball.name='tennis-ball-single';ball.castShadow=true;ball.frustumCulled=false;root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.09,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22,depthWrite:false}));shadow.name='tennis-ball-shadow';shadow.castShadow=false;shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
   resetBall();}catch(err){live=false;paused=false;ctl.enabled=true;G.tennis.visible=true;renderer.domElement.style.visibility='visible';renderer.domElement.style.display='block';scene.background=new THREE.Color(0xa9c3de);renderer.setClearColor(0xa9c3de,1);console.error('Tennis engine start failed:',err);say('試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー'));parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+(err&&err.message?err.message:'不明なエラー')},location.origin)}}
