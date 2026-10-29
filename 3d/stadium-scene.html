@@ -228,7 +228,7 @@ function applyTime(force){const a=(tod-6)/12*Math.PI,e=Math.sin(a),df=sm(-.06,.3
  skyU.top.value.lerpColors(nightC[0],dayC[0],df);skyU.mid.value.lerpColors(nightC[1],dayC[1],df).lerp(duskMid,warm*.75);skyU.bot.value.lerpColors(nightC[2],dayC[2],df);skyU.night.value=1-df;
  const sd=skyU.sunDir.value.set(-Math.cos(a)*.9,e,.45).normalize();sun.position.set(sd.x*140,Math.max(sd.y,.05)*140,sd.z*140);sun.intensity=3*sm(0,.25,e);sun.color.set(0xffffff).lerp(sunWarm,warm*.8);
  moon.intensity=.45*(1-df);hemi.intensity=(.25+.65*df)*(night?.35:1);lampMat.color.set(df<.5?0xffe9b0:0x777777);scene.fog.color.copy(skyU.mid.value);
- if(force||Math.abs(tod-lastEnv)>.25){lastEnv=tod;if(scene.environment)scene.environment.dispose();scene.environment=pm.fromScene(envScene,0,.1,3000).texture}
+ if(force||Math.abs(tod-lastEnv)>.25){lastEnv=tod;try{const env=pm.fromScene(envScene,0,.1,3000).texture;if(scene.environment)scene.environment.dispose();scene.environment=env}catch(err){console.warn('Stadium environment generation failed; continuing without environment map:',err);scene.environment=null}}
  const hh=Math.floor(tod)%24,mm=Math.floor((tod%1)*60);tb.textContent=(lapse?'⏩ ':'🕒 ')+String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')}
 function tick(){const n=performance.now(),dt=Math.min(.1,Math.max(0,(n-lastT)/1000));lastT=n;const k=Math.floor(n/4000)%slides.length;if(k!==sl){sl=k;drawSlide(k)}if(lapse){tod=(tod+dt*.25)%24;if(Math.abs(tod-lastTod)>.004){lastTod=tod;applyTime(false)}}}
 const spC=document.createElement('canvas');spC.width=512;spC.height=256;const spX=spC.getContext('2d'),spT=new THREE.CanvasTexture(spC);spT.encoding=THREE.sRGBEncoding;sbM.map=spT;sbM.needsUpdate=true;
