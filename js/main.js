@@ -35,16 +35,18 @@ function openArenaPreview(){
   frame.setAttribute('allow','fullscreen');
   Object.assign(frame.style,{display:'block',width:'100%',height:'100%',border:'0',background:'#0b0d12'});
   stage.appendChild(frame);
+  if(sport==='tennis'&&window.TennisEngine)window.TennisEngine.start(frame,stage);
   let back=$('arena3dBack');
   if(!back){
     back=document.createElement('button');back.id='arena3dBack';back.type='button';back.textContent='← メニューへ戻る';
     Object.assign(back.style,{position:'fixed',top:'max(12px,env(safe-area-inset-top))',left:'max(12px,env(safe-area-inset-left))',zIndex:'10000',padding:'11px 16px',border:'1px solid rgba(255,255,255,.35)',borderRadius:'12px',background:'rgba(12,22,34,.88)',color:'#fff',fontWeight:'800',fontSize:'14px'});
-    back.addEventListener('click',()=>{stage.hidden=true;stage.innerHTML='';stage.style.display='none';hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
+    back.addEventListener('click',()=>{window.TennisEngine?.stop();stage.hidden=true;stage.innerHTML='';stage.style.display='none';hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
     document.body.appendChild(back);
   }
   show('arena3dBack');
   msg('3Dスタジアムを表示しました。UIや試合ロジックとは分離した3Dシーンです。');
 }
+window.addEventListener('tennis-engine-exit',()=>{const stage=$('game3dStage');if(stage){window.TennisEngine?.stop();stage.hidden=true;stage.innerHTML='';stage.style.display='none'}hide('arena3dBack');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
 bind('cpuMode',openArenaPreview);bind('practiceMode',openArenaPreview);
 bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});all('[data-m]').forEach(b=>b.addEventListener('click',()=>{sport=b.dataset.m||'tennis';$('formatTitle').textContent=(sport==='tennis'?'🎾 テニス':'🏸 バドミントン')+'｜試合形式';hide('menu');hide('playPanel');const format=$('formatMenu');if(format){format.style.zIndex='20';format.hidden=false;format.style.display='flex';format.style.visibility='visible'} }));bind('createRoom',createRoom);bind('joinRoom',joinRoom);
 bind('waitingBack',()=>{disconnect();show('menu');hide('waitingPanel')});bind('copyRoomCode',()=>navigator.clipboard?.writeText($('waitingCode').textContent||'').catch(()=>{}));
