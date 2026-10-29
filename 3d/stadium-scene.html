@@ -18,7 +18,7 @@ button.on{background:var(--on);color:#fff}
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 const R=Math.random,TAU=6.28319;
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0xa9c3de,1);renderer.domElement.style.cssText='position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0';
 renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.5,2500);cam.position.set(-9,9.5,20);
@@ -243,16 +243,17 @@ const tennisGame=(()=> {
  const root=new THREE.Group();G.tennis.add(root);
  const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
  const skin=mat(0xd9a47d),shirt=mat(0x2475d8),shorts=mat(0x17283d),shoe=mat(0xf4f5f7),hair=mat(0x34251f),opShirt=mat(0xd94c45),ballMat=mat(0xd9ef57,.4);
+ const capsule=(radius,length,material)=>{const g=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,length,10),material);body.position.y=0;g.add(body);const a=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),material);a.position.y=length/2;g.add(a);const b=new THREE.Mesh(new THREE.SphereGeometry(radius,10,8),material);b.position.y=-length/2;g.add(b);return g;};
  function makePlayer(x,z,isOpp=false){
   const g=new THREE.Group(),top=isOpp?opShirt:shirt;
-  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.25,.55,4,8),top);torso.position.y=1.18;g.add(torso);
+  const torso=capsule(.25,.55,top);torso.position.y=1.18;g.add(torso);
   const head=new THREE.Mesh(new THREE.SphereGeometry(.18,16,12),skin);head.position.y=1.72;g.add(head);
   const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.185,16,8,0,Math.PI*2,0,Math.PI*.52),hair);hairCap.position.y=1.78;g.add(hairCap);
   const hips=new THREE.Mesh(new THREE.BoxGeometry(.4,.22,.25),shorts);hips.position.y=.78;g.add(hips);
   for(const s of [-1,1]){
-   const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.42,3,6),shorts);leg.position.set(s*.12,.42,0);g.add(leg);
+   const leg=capsule(.075,.42,shorts);leg.position.set(s*.12,.42,0);g.add(leg);
    const foot=new THREE.Mesh(new THREE.BoxGeometry(.13,.09,.23),shoe);foot.position.set(s*.12,.08,-.045);g.add(foot);
-   const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.06,.4,3,6),skin);arm.position.set(s*.29,1.25,0);arm.rotation.z=s*.18;g.add(arm);
+   const arm=capsule(.06,.4,skin);arm.position.set(s*.29,1.25,0);arm.rotation.z=s*.18;g.add(arm);
   }
   const racket=new THREE.Group(),rim=new THREE.Mesh(new THREE.TorusGeometry(.19,.025,8,24),mat(0x222a32));rim.scale.set(.8,1.25,1);racket.add(rim);
   const strings=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0xdde7ed,wireframe:true,transparent:true,opacity:.7}));strings.scale.set(.8,1.25,1);strings.position.z=.005;racket.add(strings);
@@ -282,10 +283,10 @@ const tennisGame=(()=> {
   const speed=kind==='power'?20:kind==='drop'?9:kind==='slice'?12:15;
   ballV.copy(delta.multiplyScalar(speed));say(kind==='power'?'強打！':kind==='drop'?'ドロップ！':kind==='slice'?'スライス！':'ナイスショット！');
  }
- function start(){if(live)return;matchOver=false;live=true;G.tennis.visible=true;setCourt('tennis');cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
+ function start(){if(live)return;try{matchOver=false;live=true;G.tennis.visible=true;setCourt('tennis');ctl.enabled=false;cam.position.set(0,8.4,19.5);ctl.target.set(0,1.2,0);cam.lookAt(0,1.2,0);ctl.update();player=makePlayer(0,4.5,false);opponent=makePlayer(0,-4.5,true);
   ball=new THREE.Mesh(new THREE.SphereGeometry(.105,16,12),ballMat);root.add(ball);
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.17,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.025;ball.userData.shadow=shadow;root.add(shadow);
-  resetBall();say('サーブしてください');}
+  resetBall();say('サーブしてください');}catch(err){live=false;console.error('Tennis engine start failed:',err);parent.postMessage({type:'tennis-engine',action:'status',text:'試合の初期化に失敗しました: '+err.message},location.origin)}}
  function stop(){live=false;keys.clear();root.clear();player=opponent=ball=null;ballV.set(0,0,0);parent.postMessage({type:'tennis-engine',action:'quit'},location.origin)}
  function move(next){keys=new Set(next||[])}
  function hit(kind){launch(kind||'hit',0)}
