@@ -132,14 +132,14 @@ const G={badm:new THREE.Group(),tennis:new THREE.Group(),volley:new THREE.Group(
 const mPB=new THREE.MeshStandardMaterial({color:0x1a1c20,roughness:.5,metalness:.4}),mPad=new THREE.MeshStandardMaterial({color:0x1f4e9c,roughness:.9}),trimM=new THREE.MeshStandardMaterial({color:0x0e2a57,roughness:.5});
 const netTex=T(128,128,g=>{g.fillStyle='#15171b';for(const[x,y]of[[0,0],[128,0],[0,128],[128,128]]){g.beginPath();g.arc(x,y,6,0,TAU);g.fill()}g.strokeStyle='#15171b';g.lineWidth=5;g.strokeRect(0,0,128,128);g.strokeStyle='rgba(225,230,236,.5)';g.lineWidth=1.5;g.strokeRect(2.5,2.5,128,128)},1);
 const tapeTex=T(256,32,g=>{g.fillStyle='#f5f5f3';g.fillRect(0,0,256,32);g.strokeStyle='rgba(60,60,60,.45)';g.lineWidth=1.5;g.fillStyle='#1f4e9c';g.font='bold 15px sans-serif';g.textAlign='center';g.fillText('ARENA',64,22);g.fillText('ARENA',192,22);g.setLineDash([6,4]);for(const y of[4,28]){g.beginPath();g.moveTo(0,y);g.lineTo(256,y);g.stroke()}},1);
-const mkNet=(g,o)=>{const{len,top,h,sag=0,cell,tape,oz=0,nb=false}=o,n=Math.ceil(len*8),hh=h-tape,sg=x=>sag*(1-Math.pow(2*x/len,2));
+const mkNet=(g,o)=>{const{len,top,h,sag=0,cell,tape,oz=0,nb=false,alongX=false}=o,n=Math.ceil(len*8),hh=h-tape,sg=x=>sag*(1-Math.pow(2*x/len,2));
  const ge=new THREE.PlaneGeometry(len,hh,n,1),p=ge.attributes.position;for(let i=0;i<p.count;i++)if(p.getY(i)>0)p.setY(i,p.getY(i)-sg(p.getX(i)));
  const nt=netTex.clone();nt.needsUpdate=true;nt.repeat.set(len/cell,hh/cell);
- const m=new THREE.Mesh(ge,new THREE.MeshStandardMaterial({map:nt,alphaTest:.3,side:2,roughness:.9}));m.position.set(0,top-tape-hh/2,oz);m.rotation.y=Math.PI/2;m.castShadow=true;g.add(m);
+ const m=new THREE.Mesh(ge,new THREE.MeshStandardMaterial({map:nt,alphaTest:.3,side:2,roughness:.9}));m.position.set(0,top-tape-hh/2,oz);m.rotation.y=alongX?0:Math.PI/2;m.castShadow=true;g.add(m);
  const tg=new THREE.PlaneGeometry(len,tape,n,1),q=tg.attributes.position;for(let i=0;i<q.count;i++)q.setY(i,q.getY(i)-sg(q.getX(i)));
  const t2=tapeTex.clone();t2.needsUpdate=true;t2.repeat.set(len/.5,1);
- const t=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({map:t2,side:2,roughness:.85}));t.position.set(0,top-tape/2,oz);t.rotation.y=Math.PI/2;t.castShadow=true;g.add(t);
- const pts=[];for(let i=0;i<=n;i++){const z=-len/2+len*i/n;pts.push(new THREE.Vector3(0,top-sg(z)+.002,oz+z))}
+ const t=new THREE.Mesh(tg,new THREE.MeshStandardMaterial({map:t2,side:2,roughness:.85}));t.position.set(0,top-tape/2,oz);t.rotation.y=alongX?0:Math.PI/2;t.castShadow=true;g.add(t);
+ const pts=[];for(let i=0;i<=n;i++){const z=-len/2+len*i/n;pts.push(alongX?new THREE.Vector3(z,top-sg(z)+.002,oz):new THREE.Vector3(0,top-sg(z)+.002,oz+z))}
  add(g,new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),n,Math.max(.002,tape*.08),6),mPB,0,0,0);
  if(!nb){const bc=add(g,cyl(.005,len),mPB,0,top-h,oz);bc.rotation.x=Math.PI/2}
  for(const s of[-1,1])add(g,new THREE.BoxGeometry(.016,h,Math.max(.02,tape*.8)),white,0,top-h/2,oz+s*(len/2-.02))};
@@ -156,7 +156,7 @@ const mkPost=(g,z,o)=>{const{h,r,base=.2,pad=0}=o,s=Math.sign(z);
  if(pad){add(g,cyl(r+.045,pad),mPad,0,pad/2+.1,z);add(g,cyl(r+.047,.05),white,0,pad+.12,z)}};
 const aT=T(16,288,g=>{for(let i=0;i<18;i++){g.fillStyle=i%2?'#f5f5f5':'#e8452c';g.fillRect(0,i*16,16,16)}}),mAnt=new THREE.MeshStandardMaterial({map:aT,roughness:.5});
 {const g=G.badm;for(const z of[-3.05,3.05])mkPost(g,z,{h:1.55,r:.04,base:.2});mkNet(g,{len:6.1,top:1.55,h:.76,sag:.026,cell:.02,tape:.075})}
-{const g=G.tennis;for(const z of[-6.4,6.4])mkPost(g,z,{h:1.07,r:.05,base:.22});mkNet(g,{len:12.8,top:1.07,h:1.04,sag:.156,cell:.045,tape:.06});add(g,new THREE.BoxGeometry(.012,.914,.05),white,0,.457,0);add(g,new THREE.BoxGeometry(.05,.03,.12),white,0,.015,0)}
+{const g=G.tennis;for(const x of[-6.4,6.4]){const postGroup=new THREE.Group();postGroup.position.x=x;g.add(postGroup);mkPost(postGroup,0,{h:1.07,r:.05,base:.22})}mkNet(g,{len:12.8,top:1.07,h:1.04,sag:.156,cell:.045,tape:.06,alongX:true});add(g,new THREE.BoxGeometry(.05,.914,.012),white,0,.457,0);add(g,new THREE.BoxGeometry(.12,.03,.05),white,0,.015,0)}
 {const g=G.volley;for(const z of[-5.05,5.05])mkPost(g,z,{h:2.55,r:.05,base:.25,pad:1.9});mkNet(g,{len:9.5,top:2.43,h:1,sag:.02,cell:.1,tape:.07});for(const s of[-1,1])for(const y of[2.43,1.43]){const c=add(g,cyl(.006,.3),mPB,0,y,s*4.9);c.rotation.x=Math.PI/2}}
 const ttT=(()=>{const tx=T(1096,610,c=>{c.fillStyle='#1b4a96';c.fillRect(0,0,1096,610);const gr=c.createLinearGradient(0,0,1096,0);gr.addColorStop(0,'rgba(255,255,255,.06)');gr.addColorStop(.5,'rgba(0,0,0,.06)');gr.addColorStop(1,'rgba(255,255,255,.06)');c.fillStyle=gr;c.fillRect(0,0,1096,610);for(let i=0;i<9000;i++){c.fillStyle=`rgba(255,255,255,${R()*.04})`;c.fillRect(R()*1096,R()*610,2,2)}c.fillStyle='rgba(255,255,255,.1)';c.font='bold 70px sans-serif';c.textAlign='center';c.fillText('ARENA',274,330);c.fillText('ARENA',822,330);c.fillStyle='#fff';c.fillRect(0,0,1096,8);c.fillRect(0,602,1096,8);c.fillRect(0,0,8,610);c.fillRect(1088,0,8,610);c.fillRect(0,303,1096,3)}),
  body=new THREE.MeshStandardMaterial({color:0x14315f,roughness:.5}),topM=new THREE.MeshBasicMaterial({map:tx,side:THREE.DoubleSide,toneMapped:false}),fr=new THREE.MeshStandardMaterial({color:0x2a2e35,roughness:.45,metalness:.5}),
