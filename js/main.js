@@ -22,7 +22,25 @@ function openSportSelect(){['tournamentMenu','achievementPanel','formatMenu','mo
 bind('tournamentNav',()=>screen(['tournamentMenu']));bind('achievementNav',()=>screen(['achievementPanel']));
 bind('playBack',()=>{const menu=$('menu');if(menu){menu.hidden=false;menu.style.display='flex';menu.style.visibility='visible';menu.style.opacity='1';menu.style.zIndex='10'}show('homeActions');hide('playPanel');hide('formatMenu');hide('modeMenu');hide('friendPanel');hide('waitingPanel')});bind('formatBack',()=>{hide('formatMenu');show('menu');show('playPanel');hide('homeActions')});bind('modeBack',()=>{hide('modeMenu');show('menu');show('playPanel');hide('homeActions')});bind('friendBack',()=>{show('modeChoices');hide('friendPanel')});
 bind('singlesMode',()=>{format='singles';hide('formatMenu');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});bind('doublesMode',()=>{format='doubles';hide('formatMenu');hide('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
-bind('cpuMode',()=>msg('試合システムは削除されています。画面とフレンド通信のみ利用できます。'));bind('practiceMode',()=>msg('試合システムは削除されています。'));
+function openArenaPreview(){
+  try{
+    if(!window.RacketArena3D||!window.THREE)throw Error('3D表示の読み込みが完了していません。少し待ってから再度お試しください。');
+    hide('menu');hide('formatMenu');hide('modeMenu');hide('tournamentMenu');hide('achievementPanel');
+    if(!window.RacketArena3D.isInitialized())window.RacketArena3D.init({background:0x101a28});
+    window.RacketArena3D.buildArena(sport);
+    window.RacketArena3D.show();
+    let back=$('arena3dBack');
+    if(!back){
+      back=document.createElement('button');back.id='arena3dBack';back.type='button';back.textContent='← メニューへ戻る';
+      Object.assign(back.style,{position:'fixed',top:'max(12px,env(safe-area-inset-top))',left:'max(12px,env(safe-area-inset-left))',zIndex:'10000',padding:'11px 16px',border:'1px solid rgba(255,255,255,.35)',borderRadius:'12px',background:'rgba(12,22,34,.88)',color:'#fff',fontWeight:'800',fontSize:'14px',boxShadow:'0 4px 18px rgba(0,0,0,.25)'});
+      back.addEventListener('click',()=>{window.RacketArena3D.hide();hide('arena3dBack');show('menu');show('modeMenu');show('modeChoices');hide('friendPanel')});
+      document.body.appendChild(back);
+    }
+    show('arena3dBack');
+    msg((sport==='tennis'?'テニス':sport==='badminton'?'バドミントン':sport)+'のコートを表示しました。現在は3Dコート確認段階で、試合エンジンはまだ接続されていません。');
+  }catch(e){msg(e.message||'3Dコートを表示できませんでした。');}
+}
+bind('cpuMode',openArenaPreview);bind('practiceMode',openArenaPreview);
 bind('friendMode',()=>{hide('modeChoices');show('friendPanel')});all('[data-m]').forEach(b=>b.addEventListener('click',()=>{sport=b.dataset.m||'tennis';$('formatTitle').textContent=(sport==='tennis'?'🎾 テニス':'🏸 バドミントン')+'｜試合形式';hide('playPanel');show('formatMenu')}));bind('createRoom',createRoom);bind('joinRoom',joinRoom);
 bind('waitingBack',()=>{disconnect();show('menu');hide('waitingPanel')});bind('copyRoomCode',()=>navigator.clipboard?.writeText($('waitingCode').textContent||'').catch(()=>{}));
 bind('roomSportSelect',e=>{sport=e.target.value;if(roomRef&&role==='host')roomRef.child('sport').set(sport).catch(()=>{})},'change');
