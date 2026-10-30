@@ -161,8 +161,8 @@ body.fxi #hud{visibility:hidden}
  <div id="hostCfg" style="flex-direction:column;gap:10px"><div><div class="lbl">競技</div><div class="row" id="sportChips"></div></div><div><div class="lbl">試合形式</div><div class="row" id="fmtChips"></div></div></div>
  <div id="guestCfg"><div class="lbl">ホストの設定</div><div class="slot"><b id="gInfo"></b></div></div>
  <div id="wait"></div><button class="btn pri" id="bStart">試合開始</button><button class="back" id="bSim" style="align-self:center"></button></div></div>
-<div id="hud" class="scr"><div id="gtop"><div><div class="n">YOU</div><div class="s" id="s0">0</div><div id="sv0">●</div></div><div class="mid" id="hSport"></div><div><div class="n">CPU</div><div class="s" id="s1">0</div><div id="sv1">●</div></div></div><div id="msg"></div><div id="hint">WASD/矢印: 移動　Space: ショット　Shift: 強打</div>
- <button id="bPause">❚❚</button><div id="ctl"><div id="stick"><div id="knob"></div></div><button class="ab" id="bPow">強打</button><button class="ab" id="bShot">ショット</button></div></div>
+<div id="hud" class="scr"><div id="gtop"><div><div class="n">PLAYER</div><div class="s" id="s0">0</div><div id="sv0" aria-label="サーブ権">●</div></div><div class="mid" id="hSport"></div><div><div class="n">CPU</div><div class="s" id="s1">0</div><div id="sv1">●</div></div></div><div id="msg"></div><div id="hint">WASD/矢印: 移動　Space: ショット　Shift: 強打</div>
+ <button id="bPause" aria-label="ポーズメニュー">☰</button><div id="ctl"><div id="stick"><div id="knob"></div></div><button class="ab" id="bPow">強打</button><button class="ab" id="bShot">スイング</button></div></div>
 <div id="over"><div class="panel"><div id="ovT"></div><div id="ovS"></div><div class="row"><button class="btn pri" id="bAgain">もう一度</button><button class="btn" id="bQuit">戻る</button></div></div></div>
 <div id="pause"><div class="panel"><h2>一時停止</h2><button class="btn pri" id="bResume">再開</button><button class="btn" id="bPQuit">試合を終了</button></div></div>
 <div id="intro" class="fx"><div class="lb lbt"></div><div class="lb lbb"></div><div id="itTitle"></div><div id="itVS"></div><div id="itCount"></div><div id="itFlash"></div></div>
