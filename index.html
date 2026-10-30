@@ -151,6 +151,38 @@ body.fxi #hud{visibility:hidden}
 #otS{position:absolute;left:0;right:0;top:calc(30% + clamp(80px,22vh,170px));text-align:center;font-size:clamp(26px,8vh,64px);font-weight:900;font-style:italic;animation:pop .6s 1s cubic-bezier(.2,1.6,.4,1) both;text-shadow:0 4px 24px rgba(0,0,0,.7)}#otS.win{color:#2ec4b6}#otS.lose{color:#9aa6cf}
 #otScore{position:absolute;left:0;right:0;top:calc(30% + clamp(150px,36vh,260px));text-align:center;font-size:clamp(20px,5vh,38px);font-weight:800;color:#fff;animation:fade .5s 1.6s both}
 #otConf{position:absolute;inset:0}#otConf i{position:absolute;top:-5%;width:9px;height:16px;opacity:.9;animation:fall linear infinite}@keyframes fall{to{transform:translateY(115vh) rotate(720deg)}}
+
+/* User-requested HUD markup */
+#hud{position:fixed;inset:0;display:none;pointer-events:none;flex-direction:column}
+#hud.on{display:flex}
+#touch{position:absolute;inset:0;pointer-events:none}
+#joy{position:absolute;left:max(24px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));width:min(34vw,150px);height:min(34vw,150px);border-radius:50%;background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.28);pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center}
+#knob{width:42%;height:42%;border-radius:50%;background:rgba(255,255,255,.45);border:2px solid rgba(255,255,255,.7)}
+.tb{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.38);border-radius:50%;width:clamp(68px,17vw,94px);height:clamp(68px,17vw,94px);font-weight:900;font-size:clamp(12px,3vw,16px);background:linear-gradient(135deg,var(--ac),#ff5a3c);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.tb.p{transform:scale(.92);filter:brightness(1.2)}
+#bs{right:max(18px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom))}
+#bp{right:calc(max(18px,env(safe-area-inset-right)) + clamp(68px,17vw,94px) + 10px);bottom:max(22px,env(safe-area-inset-bottom));background:linear-gradient(135deg,#2e6bd6,#2ec4b6)}
+#bd{right:max(18px,env(safe-area-inset-right));bottom:calc(max(22px,env(safe-area-inset-bottom)) + clamp(68px,17vw,94px) + 10px);background:linear-gradient(135deg,#8d54d8,#e35a9b)}
+#mb{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));pointer-events:auto;width:44px;height:44px;border-radius:14px;background:rgba(8,12,30,.78);border:1px solid var(--ln);font-size:18px}
+#score{position:absolute;top:max(12px,env(safe-area-inset-top));left:12px;display:flex;flex-direction:column;gap:6px;min-width:148px;padding:10px;border-radius:14px;background:rgba(8,12,30,.78);border:1px solid var(--ln);backdrop-filter:blur(8px);font-variant-numeric:tabular-nums}
+#score .sr{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;font-size:14px}
+#score .sr b{font-size:12px;letter-spacing:.04em}
+#score .sr i{font-style:normal;min-width:1.5ch;text-align:right}
+#score .sr u{text-decoration:none;min-width:3ch;text-align:right;font-weight:900}
+#score .summary{display:flex;justify-content:space-between;gap:12px;padding-bottom:7px;border-bottom:1px solid var(--ln);font-size:11px}
+#score .summary b,#score .summary i{font-size:11px;white-space:nowrap}
+#score .sr.active{color:#7ee6d4}
+#pointScore{position:absolute;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);min-width:190px;text-align:center;padding:9px 16px 10px;border:1px solid rgba(255,255,255,.2);border-radius:16px;background:linear-gradient(145deg,rgba(8,15,34,.92),rgba(16,26,52,.84));box-shadow:0 10px 34px rgba(0,0,0,.3);backdrop-filter:blur(10px)}
+.ps-title{font-size:10px;letter-spacing:.18em;color:#7ee6d4;font-weight:900}
+.ps-main{display:flex;align-items:center;justify-content:center;gap:12px;font-size:clamp(28px,5vh,40px);line-height:1.2;font-weight:950}
+.ps-sub{font-size:10px;color:var(--dim);white-space:nowrap}
+.ps-names{color:var(--tx);font-weight:800}
+#msg{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:clamp(24px,6vh,46px);font-weight:900;text-shadow:0 3px 14px rgba(0,0,0,.7);pointer-events:none}
+#msg.win{color:var(--ac2)}#msg.lose{color:#ff6b6b}
+#help{color:var(--tx);text-shadow:0 1px 4px #000;pointer-events:none}
+@media(max-width:680px){#score{top:max(8px,env(safe-area-inset-top));left:8px;min-width:125px;padding:7px 8px;gap:5px}#score .sr{gap:7px;font-size:12px}#score .sr b{font-size:11px}#score .summary{gap:8px}#score .summary b,#score .summary i{font-size:9px}#pointScore{top:max(8px,env(safe-area-inset-top));min-width:145px;padding:7px 10px;border-radius:12px} .ps-main{font-size:clamp(24px,6vw,32px);gap:8px}.ps-title{font-size:9px}.ps-sub{font-size:9px}#joy{width:min(30vw,132px);height:min(30vw,132px);left:max(14px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom))}.tb{width:clamp(60px,16vw,78px);height:clamp(60px,16vw,78px);font-size:12px}#bs{right:max(12px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom))}#bp{right:calc(max(12px,env(safe-area-inset-right)) + clamp(60px,16vw,78px) + 8px);bottom:max(16px,env(safe-area-inset-bottom))}#bd{right:max(12px,env(safe-area-inset-right));bottom:calc(max(16px,env(safe-area-inset-bottom)) + clamp(60px,16vw,78px) + 8px)}#mb{width:40px;height:40px}#help{font-size:10px!important;bottom:5px!important}}
+@media(max-width:380px){#score{min-width:112px;padding:6px}#score .sr{gap:5px}#pointScore{min-width:130px;padding:6px 8px}.ps-main{font-size:23px}#joy{width:104px;height:104px}}
+
 </style><script>{const D=Date;window.Date=class extends D{getHours(){return 12}getMinutes(){return 0}getSeconds(){return 0}}}</script></head><body>
 <div class="bar" id="top"></div><div class="bar" id="bot"></div><canvas id="c"></canvas>
 <div id="menu" class="scr on"><div class="rs-home"><header class="rs-logo"><small>RACKET SPORTS</small><h1>RACKET<br><span>STARS</span></h1><p>テニス ＆ バドミントン</p></header><div class="rs-modes"><button class="rs-mode" id="bPlay"><span>🎮</span><b>プレイ</b><em>PLAY ▶</em></button><button class="rs-mode" id="bFriend"><span>👥</span><b>フレンド対戦</b><em>PLAY ▶</em></button><button class="rs-mode" id="bTournament"><span>🏆</span><b>トーナメント</b><em>PLAY ▶</em></button><button class="rs-mode" id="bAchievement"><span>🎖️</span><b>実績・称号</b><em>COLLECTION</em></button></div></div></div>
@@ -167,8 +199,12 @@ body.fxi #hud{visibility:hidden}
  <div id="hostCfg" style="flex-direction:column;gap:10px"><div><div class="lbl">競技</div><div class="row" id="sportChips"></div></div><div><div class="lbl">試合形式</div><div class="row" id="fmtChips"></div></div></div>
  <div id="guestCfg"><div class="lbl">ホストの設定</div><div class="slot"><b id="gInfo"></b></div></div>
  <div id="wait"></div><button class="btn pri" id="bStart">試合開始</button><button class="back" id="bSim" style="align-self:center"></button></div></div>
-<div id="hud" class="scr"><div id="gtop"><div><div class="n">PLAYER</div><div class="s" id="s0">0</div><div id="sv0" aria-label="サーブ権">●</div></div><div class="mid" id="hSport"></div><div><div class="n">CPU</div><div class="s" id="s1">0</div><div id="sv1">●</div></div></div><div id="msg"></div><div id="hint">WASD/矢印: 移動　Space: ショット　Shift: 強打</div>
- <button id="bPause" aria-label="ポーズメニュー">☰</button><div id="ctl"><div id="stick"><div id="knob"></div></div><button class="ab" id="bPow">強打</button><button class="ab" id="bShot">スイング</button></div></div>
+<div id="hud" class="scr"><div id="touch"><div id="joy"><div id="knob"></div></div><button class="tb" id="bs">スイング</button><button class="tb" id="bp">打撃</button><button class="tb" id="bd">ドロップ</button></div>
+<button id="mb" aria-label="ポーズメニュー">☰</button>
+<div id="score"><div class="sr summary compactSummary"><b>SET 1 - 0</b><i>GAME 3 - 2</i></div><div class="sr"><b>Player</b><i>6</i><u>30</u></div><div class="sr"><b>CPU</b><i>3</i><u>15</u></div></div>
+<div id="pointScore"><div class="ps-title">LIVE SCORE</div><div class="ps-main"><span>30</span><span>－</span><span>15</span></div><div class="ps-sub"><span class="ps-names">Player</span> 対 <span class="ps-names">CPU</span>　SET 1</div></div>
+<div id="msg">ナイスショット！</div>
+<div id="help" style="font-size:12px;opacity:.8;position:absolute;bottom:8px;left:0;right:0;text-align:center">移動 WASD/矢印 ・ スイング Space ・ Esc メニュー</div></div>
 <div id="over"><div class="panel"><div id="ovT"></div><div id="ovS"></div><div class="row"><button class="btn pri" id="bAgain">もう一度</button><button class="btn" id="bQuit">戻る</button></div></div></div>
 <div id="pause"><div class="panel"><h2>一時停止</h2><button class="btn pri" id="bResume">再開</button><button class="btn" id="bPQuit">試合を終了</button></div></div>
 <div id="intro" class="fx"><div class="lb lbt"></div><div class="lb lbb"></div><div id="itTitle"></div><div id="itVS"></div><div id="itCount"></div><div id="itFlash"></div></div>
@@ -586,20 +622,26 @@ const inp={mx:0,mz:0,shot:false,power:false},keys={};let stick={x:0,y:0};
 addEventListener('keydown',e=>{keys[e.code]=true;if(mode==='game'&&!paused){if(e.code==='Space'){inp.shot=true;e.preventDefault()}if(e.code==='ShiftLeft'||e.code==='KeyJ'||e.code==='ShiftRight'){inp.shot=true;inp.power=true}if(e.code==='Escape')pauseGame(true)}});
 addEventListener('keyup',e=>{keys[e.code]=false});
 function readMove(){let x=stick.x,y=stick.y;if(keys.KeyA||keys.ArrowLeft)x-=1;if(keys.KeyD||keys.ArrowRight)x+=1;if(keys.KeyW||keys.ArrowUp)y-=1;if(keys.KeyS||keys.ArrowDown)y+=1;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}inp.mx=x;inp.mz=y}
-const sA=$('stick'),sK=$('knob');let sid=null;
+const sA=$('joy'),sK=$('knob');let sid=null;
 function sMove(e){const r=sA.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,R_=r.width/2;let dx=(e.clientX-cx)/R_,dy=(e.clientY-cy)/R_;const l=Math.hypot(dx,dy);if(l>1){dx/=l;dy/=l}stick.x=Math.abs(dx)<.12?0:dx;stick.y=Math.abs(dy)<.12?0:dy;sK.style.transform=`translate(${dx*R_*.6}px,${dy*R_*.6}px)`}
 sA.addEventListener('pointerdown',e=>{sid=e.pointerId;sA.setPointerCapture(sid);sMove(e)});sA.addEventListener('pointermove',e=>{if(e.pointerId===sid)sMove(e)});
 const sEnd=e=>{if(e.pointerId===sid){sid=null;stick.x=stick.y=0;sK.style.transform=''}};sA.addEventListener('pointerup',sEnd);sA.addEventListener('pointercancel',sEnd);
-$('bShot').addEventListener('pointerdown',e=>{e.preventDefault();inp.shot=true;$('bShot').classList.add('p')});$('bPow').addEventListener('pointerdown',e=>{e.preventDefault();inp.shot=true;inp.power=true;$('bPow').classList.add('p')});
-for(const id of['bShot','bPow'])for(const ev of['pointerup','pointerleave','pointercancel'])$(id).addEventListener(ev,()=>$(id).classList.remove('p'));
+$('bs').addEventListener('pointerdown',e=>{e.preventDefault();inp.shot=true;$('bs').classList.add('p')});
+$('bp').addEventListener('pointerdown',e=>{e.preventDefault();inp.shot=true;inp.power=true;$('bp').classList.add('p')});
+$('bd').addEventListener('pointerdown',e=>{e.preventDefault();inp.shot=true;$('bd').classList.add('p')});
+for(const id of['bs','bp','bd'])for(const ev of['pointerup','pointerleave','pointercancel'])$(id).addEventListener(ev,()=>$(id).classList.remove('p'));
 if(matchMedia('(pointer:coarse)').matches)document.body.classList.add('touch');addEventListener('touchstart',()=>document.body.classList.add('touch'),{once:true});
 // audio
 let AC=null;function beep(f,d,ty='triangle',v=.08){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
 // HUD
 const hud={};let hs='';
-function hudBuild(){$('hSport').textContent=SP[cur.sport].icon+' '+SP[cur.sport].name+' / '+(cur.sport==='volley'?(cur.dbl?'2対2':'1対1'):(cur.dbl?'ダブルス':'シングルス'))+(cur.friend?' (フレンド・通信なし/CPU戦)':'');hs='';$('msg').textContent='';$('over').classList.remove('on')}
+function hudBuild(){hs='';$('msg').textContent='ナイスショット！';$('msg').className='';$('over').classList.remove('on')}
 function hudTick(){const pt=M.pointText(),sv=M.server;const k=pt.join('|')+sv+M.state+M.msg+(M.srvP===M.human);if(k===hs)return;hs=k;
- $('s0').textContent=pt[0];$('s1').textContent=pt[1];$('sv0').style.opacity=sv===0?1:.15;$('sv1').style.opacity=sv===1?1:.15;
+ const rows=$('score').querySelectorAll('.sr:not(.summary)');
+ rows[0].querySelector('i').textContent=M.score[0];rows[1].querySelector('i').textContent=M.score[1];
+ rows[0].querySelector('u').textContent=pt[0];rows[1].querySelector('u').textContent=pt[1];
+ rows[0].classList.toggle('active',sv===0);rows[1].classList.toggle('active',sv===1);
+ const live=$('pointScore').querySelectorAll('.ps-main span');live[0].textContent=pt[0];live[2].textContent=pt[1];
  let m='';if(M.state==='point')m=M.msg;else if(M.state==='serve')m=M.srvP===M.human?'ショットでサーブ':'相手のサーブ';$('msg').textContent=m;$('msg').className=M.state==='point'?(M.pt===0?'win':'lose'):'';
  if(M.state==='over'&&FX.outroDone&&!$('over').classList.contains('on')){$('ovT').textContent=M.winner===0?'🏆 勝利!':'敗北…';$('ovS').textContent=M.score[0]+' - '+M.score[1];$('over').classList.add('on')}}
 function pauseGame(v){paused=v;$('pause').classList.toggle('on',v)}
@@ -665,7 +707,7 @@ const cards=$('sportCards');for(const id of SPORTS){const s=SP[id],b=document.cr
 function go(dbl){setMenuVis(false);setupMatch(flow.sport,dbl);show('hud')}
 $('fS').onclick=()=>go(false);$('fD').onclick=()=>go(true);
 $('bAgain').onclick=()=>{setupMatch(cur.sport,cur.dbl);show('hud')};$('bQuit').onclick=()=>{if(cur.friend){mode='menu';clearPlayers();M=null;setMenuVis(true);show('lobby')}else toMenu()};
-$('bPause').onclick=()=>pauseGame(true);$('bResume').onclick=()=>pauseGame(false);$('bPQuit').onclick=()=>{pauseGame(false);$('bQuit').onclick()};
+$('mb').onclick=()=>pauseGame(true);$('bResume').onclick=()=>pauseGame(false);$('bPQuit').onclick=()=>{pauseGame(false);$('bQuit').onclick()};
 // ===== friend =====
 const F={role:'host',code:'',sport:'tennis',dbl:false,guest:false};
 const genCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=a[Math.random()*a.length|0];return s};
