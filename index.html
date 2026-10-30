@@ -177,6 +177,19 @@ button,input,summary{touch-action:manipulation}
 @media(max-width:700px){#menu .home{grid-template-columns:1fr;gap:5vmin;width:min(520px,88vw);text-align:center}#menu .logo h1{font-size:clamp(42px,15vmin,76px)}#menu .logo p{font-size:10px}#menu .modes{gap:12px}#menu button.mode{padding:14px 18px;gap:12px}#menu button.mode b{font-size:clamp(18px,5vmin,25px)}#menu button.mode em{font-size:10px;padding:4px 8px}#sport .panel,#fmt .panel{width:92vw}#sport .grid,#fmt .grid{gap:10px}#sport .card,#fmt .card{min-height:104px}}
 @media(prefers-reduced-motion:reduce){#menu button.mode,#sport .card,#fmt .card{transition:none}}
 
+
+/* Event-driven toast notifications adapted from the supplied UI component. */
+#arenaToastStack{position:fixed;z-index:3000;right:calc(env(safe-area-inset-right,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:grid;gap:8px;width:min(320px,calc(100vw - 24px));pointer-events:none;font-family:system-ui,"Hiragino Sans","Yu Gothic",sans-serif}
+#arenaToastStack .arena-toast{position:relative;overflow:hidden;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:#fff;color:#16324f;border:2px solid #cfe5f9;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:arenaToastIn .4s cubic-bezier(.2,1.2,.3,1);cursor:pointer;pointer-events:auto}
+#arenaToastStack .arena-toast.out{animation:arenaToastOut .25s forwards}
+#arenaToastStack .arena-toast i{font-style:normal;font-size:24px;flex:0 0 auto}
+#arenaToastStack .arena-toast b{display:block;font-size:13px;line-height:1.4}
+#arenaToastStack .arena-toast small{display:block;opacity:.75;font-size:12px;line-height:1.45}
+#arenaToastStack .arena-toast:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--arena-toast-color,#39d9ff);transform-origin:left;animation:arenaToastBar 4s linear forwards}
+@keyframes arenaToastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+@keyframes arenaToastOut{to{opacity:0;transform:translateX(100%)}}
+@keyframes arenaToastBar{to{transform:scaleX(0)}}
+@media(prefers-reduced-motion:reduce){#arenaToastStack .arena-toast,#arenaToastStack .arena-toast:after{animation-duration:.01ms!important}}
 </style><script>{const D=Date;window.Date=class extends D{getHours(){return 12}getMinutes(){return 0}getSeconds(){return 0}}}</script></head><body>
 <div class="bar" id="top"></div><div class="bar" id="bot"></div><canvas id="c"></canvas>
 <div id="splash"><i class="o a"></i><i class="o b"></i><div class="mk">AS</div><p class="ey">WELCOME TO</p><h1>ARENA<br>SPORTS</h1><p class="sb">BADMINTON · TENNIS · TABLE TENNIS · VOLLEYBALL</p><div class="pb"><u></u></div><small>TAP TO START</small></div>
@@ -736,7 +749,7 @@ function introCamPos(u){const S=M.S,c=CAMP[cur.sport],W=M.Wc,fin=camTarget();gw.
 function startOutro(){const w=M.winner,pt=M.teams[w][0],fr=cur.friend;FX.outro={t:0,w,pt};FX.outroDone=false;$('outro').classList.add('on');
  $('otB').innerHTML='<span>GAME SET!</span>';$('otS').className=w===0?'win':'lose';$('otS').textContent=w===0?(fr?'HOST WIN!':'YOU WIN!'):(fr?'GUEST WIN!':'YOU LOSE...');$('otScore').textContent=M.score[0]+' - '+M.score[1];
  if(w===0){let h='';for(let i=0;i<46;i++)h+=`<i style="left:${R()*100}%;background:hsl(${R()*360},85%,60%);animation-delay:${R()*1.4}s;animation-duration:${2+R()*1.6}s"></i>`;$('otConf').innerHTML=h}else $('otConf').innerHTML='';
- SFX.gameSet();SFX.fanfare(w===0)}
+ if(window.arenaNotify){if(w===0){window.arenaNotify('🏆','勝利！','試合に勝ちました','#ffd23f');try{if(!localStorage.getItem('sportsArena.firstWin')){localStorage.setItem('sportsArena.firstWin','1');window.arenaNotify('🏆','実績解除','初勝利を達成！','#ffd23f')}}catch(_){}}else window.arenaNotify('🎾','試合終了','次の試合でリベンジしましょう','#39d9ff')}SFX.gameSet();SFX.fanfare(w===0)}
 function fxTick(dt,t){if(paused)return;
  if(FX.intro){const I=FX.intro;I.t+=dt;const u=I.t,TL=[0,1.2,2.8,3.3,3.8,4.3,4.8],st=TL.reduce((a,v,i)=>u>=v?i:a,0);if(st!==I.stage)introStage(st);
   const cp=introCamPos(u);cam.position.copy(cp.p);cam.lookAt(cp.l);camPos.copy(cp.p);camLook.copy(cp.l);if(u>=5.5)endIntro()}
@@ -792,9 +805,9 @@ $('bSnd').onclick=()=>{SFX.mute(!SFX.isMute());$('bSnd').textContent=SFX.isMute(
 // ===== friend =====
 const F={role:'host',code:'',sport:'tennis',dbl:false,guest:false};
 const genCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=a[Math.random()*a.length|0];return s};
-$('bCreate').onclick=()=>{F.role='host';F.code=genCode();F.guest=false;F.sport='tennis';F.dbl=false;lobby()};
+$('bCreate').onclick=()=>{F.role='host';F.code=genCode();F.guest=false;F.sport='tennis';F.dbl=false;lobby();if(window.arenaNotify)window.arenaNotify('👥','ルーム作成','フレンド対戦用の部屋を作成しました','#39d9ff')};
 const ci=$('codeIn');ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);$('bJoin').disabled=ci.value.length<6};$('bJoin').disabled=true;
-$('bJoin').onclick=()=>{if(ci.value.length<6)return;F.role='guest';F.code=ci.value;F.sport='tennis';F.dbl=false;F.guest=true;lobby()};
+$('bJoin').onclick=()=>{if(ci.value.length<6)return;F.role='guest';F.code=ci.value;F.sport='tennis';F.dbl=false;F.guest=true;lobby();if(window.arenaNotify)window.arenaNotify('👥','参加モード','入力した部屋コードでロビーを開きました','#39d9ff')};
 function fmtName(sport,dbl){return sport==='volley'?(dbl?'2対2':'1対1'):(dbl?'ダブルス':'シングルス')}
 let dots=0;setInterval(()=>{dots=(dots+1)%4;const e=$('wait');if(e&&e.dataset.base)e.textContent=e.dataset.base+'.'.repeat(dots)},450);
 function lobby(){show('lobby');const host=F.role==='host';$('lCode').textContent=F.code;$('lTitle').textContent=host?'ルーム (ホスト)':'ルーム (ゲスト)';
@@ -835,5 +848,33 @@ if(am>.05&&!(p.dv>0)&&!(p.sw>0)&&p.sT==null){const s=Math.sin(p.ph);c.armL.el.ro
 const L=[c.armR.sh,c.armR.el,c.armL.sh,c.armL.el,c.legR.hj,c.legR.kn,c.legR.an,c.legL.hj,c.legL.kn,c.legL.an,c.torso,c.hips,c.head],a=1-Math.exp(-Math.min(dt,.05)*30),S=c._sm||(c._sm=[]);
 L.forEach((o,i)=>{const r=o.rotation,q=S[i]||(S[i]=[r.x,r.y,r.z]);for(const [j,k] of [[0,'x'],[1,'y'],[2,'z']]){const v=r[k];q[j]=Math.abs(v-q[j])>1.6?v:q[j]+(v-q[j])*a;r[k]=q[j]}})}catch(_){}};
 for(const id of['s0','s1']){const el=document.getElementById(id);if(el)new MutationObserver(()=>{el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump')}).observe(el,{childList:true,characterData:true,subtree:true})}
+</script>
+
+<script>
+(()=>{
+ if(window.arenaNotify)return;
+ const stack=document.createElement('div');
+ stack.id='arenaToastStack';
+ stack.setAttribute('aria-live','polite');
+ stack.setAttribute('aria-atomic','false');
+ document.body.appendChild(stack);
+ window.arenaNotify=(icon,title,message,color='#39d9ff')=>{
+  const item=document.createElement('div');
+  item.className='arena-toast';
+  item.style.setProperty('--arena-toast-color',color);
+  const ico=document.createElement('i');ico.textContent=icon;
+  const body=document.createElement('div');
+  const heading=document.createElement('b');heading.textContent=title;
+  const detail=document.createElement('small');detail.textContent=message;
+  body.append(heading,detail);item.append(ico,body);
+  let timer;
+  const dismiss=()=>{if(!item.isConnected)return;clearTimeout(timer);item.classList.add('out');setTimeout(()=>item.remove(),260)};
+  item.addEventListener('click',dismiss);
+  stack.appendChild(item);
+  timer=setTimeout(dismiss,4000);
+  while(stack.children.length>3)stack.firstElementChild.remove();
+ };
+ window.addEventListener('error',()=>window.arenaNotify('⚠️','エラー','画面の処理中にエラーが発生しました','#ff5268'));
+})();
 </script>
 </body></html>
