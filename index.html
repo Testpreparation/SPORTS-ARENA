@@ -147,13 +147,42 @@ button,input,summary{touch-action:manipulation}
 @keyframes uxHit{0%{opacity:0;transform:translate(-50%,16px) scale(.4) rotate(-6deg)}25%{opacity:1;transform:translate(-50%,0) scale(1.25) rotate(-3deg)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
 @keyframes uxBump{40%{transform:scale(1.5);color:var(--ac)}}
 @keyframes uxSv{50%{transform:scale(1.35)}}
+
+/* BADMINTON-ARENA UI component styles adapted for Sports Arena screens only.
+   Gameplay, 3D scene, camera, materials, textures and match logic are intentionally untouched. */
+#menu{background:radial-gradient(ellipse at 25% 35%,rgba(75,160,255,.48),rgba(20,50,105,.78) 48%,rgba(6,14,32,.96))}
+#menu .home{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:4vmin;width:min(920px,92vw);margin:auto}
+#menu .logo small{letter-spacing:.4em;color:#fff;font-weight:800}
+#menu .logo h1{margin:4px 0;font-size:clamp(44px,13vmin,110px);line-height:.92;font-style:italic;font-weight:900;background:linear-gradient(180deg,#fff,#bfe6ff 55%,#4aa8ff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2px rgba(20,60,120,.55);filter:drop-shadow(0 5px 0 rgba(20,60,120,.35))}
+#menu .logo p{margin:10px 0 0;color:#fff;opacity:.9;letter-spacing:.12em;font-size:clamp(10px,1.5vw,14px);line-height:1.6}
+#menu .modes{display:flex;flex-direction:column;gap:2.4vmin}
+#menu button.mode{display:flex;align-items:center;gap:16px;width:100%;margin:0;padding:2vmin 3vmin;border-radius:28px;background:#fff;color:#16324f;border:0;box-shadow:0 8px 0 rgba(20,60,120,.3);backdrop-filter:none;transform:none;text-align:left;transition:transform .15s,box-shadow .15s}
+#menu button.mode span{width:1.4em;height:1.4em;flex:0 0 1.4em;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,8vmin,56px);background:#c6f36b}
+#menu button.mode#bFriend span{background:#9fe3ff}
+#menu button.mode b{font-size:clamp(20px,5.5vmin,34px);flex:1;text-align:left}
+#menu button.mode em{font-style:normal;font-size:clamp(11px,2.2vmin,14px);font-weight:800;background:#ff5a3c;color:#fff;border-radius:20px;padding:5px 10px;white-space:nowrap}
+#menu button.mode:hover,#menu button.mode:active{transform:translateY(-4px) scale(1.02);background:#fff;color:#16324f;box-shadow:0 12px 0 rgba(20,60,120,.3)}
+#sport,#fmt{background:linear-gradient(180deg,rgba(70,160,255,.82),rgba(255,255,255,.94))}
+#sport .panel,#fmt .panel{width:min(92vw,720px);max-height:92vh;overflow:auto;box-sizing:border-box;padding:clamp(18px,3vh,28px);gap:16px;background:rgba(255,255,255,.96);color:#16324f;border:1px solid rgba(255,255,255,.8);border-radius:24px;box-shadow:0 18px 50px rgba(20,60,120,.25);backdrop-filter:blur(10px)}
+#sport .panel h2,#fmt .panel h2{margin:0;font-size:clamp(22px,3vw,30px);font-weight:900;color:#16324f}
+#sport .panel .sub,#fmt .panel .sub{margin:-8px 0 0;color:#52708c;font-size:13px}
+#sport .back,#fmt .back{width:auto;align-self:flex-start;margin:0 0 2px;padding:8px 12px;border:0;border-radius:20px;background:#e6eef7;color:#16324f;font-size:14px;font-weight:800}
+#sport .grid,#fmt .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#sport .card,#fmt .card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:118px;padding:clamp(14px,3vh,26px) 10px;border-radius:20px;background:#fff;color:#16324f;border:2px solid #d9e7f4;box-shadow:0 6px 0 rgba(20,60,120,.12);font-size:clamp(16px,2.2vw,20px);font-weight:800;transition:transform .15s,border-color .15s,box-shadow .15s}
+#sport .card .ic{font-size:clamp(30px,7vmin,52px)}
+#sport .card:hover,#fmt .card:hover{transform:translateY(-3px);border-color:#70bdf7;box-shadow:0 9px 0 rgba(20,60,120,.15)}
+#fmt #fS,#fmt #fD{min-height:100px}
+#fmt #fS{background:linear-gradient(145deg,#fff,#eaf8ff)}
+#fmt #fD{background:linear-gradient(145deg,#fff,#fff0eb)}
+@media(max-width:700px){#menu .home{grid-template-columns:1fr;gap:5vmin;width:min(520px,88vw);text-align:center}#menu .logo h1{font-size:clamp(42px,15vmin,76px)}#menu .logo p{font-size:10px}#menu .modes{gap:12px}#menu button.mode{padding:14px 18px;gap:12px}#menu button.mode b{font-size:clamp(18px,5vmin,25px)}#menu button.mode em{font-size:10px;padding:4px 8px}#sport .panel,#fmt .panel{width:92vw}#sport .grid,#fmt .grid{gap:10px}#sport .card,#fmt .card{min-height:104px}}
+@media(prefers-reduced-motion:reduce){#menu button.mode,#sport .card,#fmt .card{transition:none}}
+
 </style><script>{const D=Date;window.Date=class extends D{getHours(){return 12}getMinutes(){return 0}getSeconds(){return 0}}}</script></head><body>
 <div class="bar" id="top"></div><div class="bar" id="bot"></div><canvas id="c"></canvas>
 <div id="splash"><i class="o a"></i><i class="o b"></i><div class="mk">AS</div><p class="ey">WELCOME TO</p><h1>ARENA<br>SPORTS</h1><p class="sb">BADMINTON · TENNIS · TABLE TENNIS · VOLLEYBALL</p><div class="pb"><u></u></div><small>TAP TO START</small></div>
-<div id="menu" class="scr on"><div class="title"><h1>ARENA <span>SPORTS</span></h1><p>BADMINTON · TENNIS · TABLE TENNIS · VOLLEYBALL</p></div>
- <div class="side"><button class="big" id="bPlay"><span class="ic">🎮</span><span>プレイ<small>CPUと対戦</small></span></button><button class="big b2" id="bFriend"><span class="ic">🤝</span><span>フレンド対戦<small>部屋を作って遊ぶ</small></span></button></div></div>
-<div id="sport" class="scr"><div class="panel"><button class="back" data-back="menu">‹ メニュー</button><h2>競技を選択</h2><div class="grid" id="sportCards"></div></div></div>
-<div id="fmt" class="scr"><div class="panel"><button class="back" data-back="sport">‹ 競技選択</button><h2 id="fmtT"></h2><p class="sub">試合形式を選択</p><div class="grid"><button class="card" id="fD0" style="display:none"></button><button class="card" id="fS" style="grid-column:1"></button><button class="card" id="fD"></button></div></div></div>
+<div id="menu" class="scr on"><div class="home"><div class="logo"><small>SPORTS ARENA</small><h1>SPORTS<br>ARENA</h1><p>BADMINTON · TENNIS · TABLE TENNIS · VOLLEYBALL</p></div><div class="modes"><button class="mode" id="bPlay"><span>🎮</span><b>プレイ</b><em>CPUと対戦 ▶</em></button><button class="mode" id="bFriend"><span>🤝</span><b>フレンド対戦</b><em>PLAY ▶</em></button></div></div></div>
+<div id="sport" class="scr"><div class="panel"><button class="back" data-back="menu">← メインメニュー</button><h2>競技を選択</h2><div class="grid" id="sportCards"></div></div></div>
+<div id="fmt" class="scr"><div class="panel"><button class="back" data-back="sport">← 競技選択</button><h2 id="fmtT"></h2><p class="sub">試合形式を選択</p><div class="grid"><button class="card" id="fD0" style="display:none"></button><button class="card" id="fS" style="grid-column:1"></button><button class="card" id="fD"></button></div></div></div>
 <div id="friend" class="scr"><div class="panel"><button class="back" data-back="menu">‹ メニュー</button><h2>フレンド対戦</h2>
  <button class="big b2" id="bCreate"><span class="ic">🏠</span><span>部屋を作成<small>ホストとして部屋を作る</small></span></button>
  <div><div class="lbl">部屋に参加する</div><div class="row" style="flex-wrap:nowrap"><input id="codeIn" placeholder="部屋コード" maxlength="6" autocomplete="off" inputmode="text"><button class="btn pri" id="bJoin" style="white-space:nowrap">参加</button></div></div></div></div>
