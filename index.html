@@ -102,6 +102,12 @@ input{font:inherit;color:inherit;background:rgba(0,0,0,.35);border:1px solid var
  button{touch-action:manipulation}
 }
 /* hud */
+/* Refreshed HUD appearance; existing score/input IDs and 3D/camera code stay intact */
+#gtop{display:grid;grid-template-columns:minmax(70px,1fr) minmax(105px,1.25fr) minmax(70px,1fr);min-width:min(340px,calc(100vw - 104px));max-width:min(560px,calc(100vw - 88px));border:1px solid rgba(255,255,255,.2);border-radius:18px;background:linear-gradient(145deg,rgba(8,15,34,.92),rgba(16,26,52,.84));box-shadow:0 10px 34px rgba(0,0,0,.3);backdrop-filter:blur(10px)}
+#gtop>div:not(.mid){padding:8px 12px;text-align:center;min-width:0}#gtop .n{font-size:10px;letter-spacing:.16em;font-weight:800;color:#aebbdc}#gtop .s{font-size:clamp(28px,5vh,42px);line-height:1.15;font-weight:950;color:#fff}#gtop .mid{display:flex;align-items:center;justify-content:center;padding:8px;border-inline:1px solid rgba(255,255,255,.1);font-weight:800;color:#7ee6d4;font-size:clamp(10px,1.6vw,13px);text-align:center;overflow-wrap:anywhere}#sv0,#sv1{font-size:9px;color:#ffca62}
+@media(max-width:680px){#gtop{grid-template-columns:minmax(58px,1fr) minmax(90px,1.2fr) minmax(58px,1fr);min-width:min(300px,calc(100vw - 86px));max-width:calc(100vw - 80px);margin-top:max(8px,env(safe-area-inset-top));border-radius:14px}#gtop>div:not(.mid){padding:7px 6px}#gtop .s{font-size:clamp(25px,6vw,34px)}#gtop .mid{font-size:10px;padding:6px 4px}#bShot{font-size:15px}}
+@media(max-width:380px){#gtop{grid-template-columns:minmax(50px,1fr) minmax(76px,1.15fr) minmax(50px,1fr);min-width:0;max-width:calc(100vw - 72px)}#gtop>div:not(.mid){padding:6px 4px}#gtop .n{font-size:9px}#gtop .s{font-size:25px}#gtop .mid{padding:5px 3px}}
+
 #hud{pointer-events:none;flex-direction:column}
 #gtop{align-self:center;margin-top:8px;display:flex;align-items:stretch;border-radius:16px;overflow:hidden;background:rgba(8,12,30,.78);border:1px solid var(--ln);backdrop-filter:blur(6px);pointer-events:none}
 #gtop div{padding:6px 16px;text-align:center}#gtop .n{font-size:11px;color:var(--dim)}#gtop .s{font-size:clamp(24px,5vh,36px);font-weight:900;font-variant-numeric:tabular-nums;min-width:2ch}#gtop .mid{background:rgba(255,255,255,.06);display:flex;align-items:center;font-size:12px;color:var(--dim)}
